@@ -295,6 +295,29 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,.drop-card:focus
 .god-card-body b{font-size:15px;color:var(--ink)}
 @keyframes card-flip{from{opacity:0;transform:perspective(600px) rotateY(80deg) translateY(20px)}}
 .god-list{display:grid;gap:6px}
+.shop-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.game-stage{display:grid;justify-items:center;gap:16px;margin:8px 0 6px}
+.wheel-wrap{position:relative;width:min(280px,72vw);aspect-ratio:1}
+.wheel{position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 6px #fff,0 0 0 9px #E8C46A,0 18px 40px -16px rgba(42,51,80,.6)}
+.wheel-l{position:absolute;left:50%;top:50%;font-size:13px;font-weight:800;white-space:nowrap;transform:rotate(var(--a)) translateY(-34%) translateY(calc(min(280px,72vw)*-.3)) translateX(-50%);transform-origin:0 0;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.wheel-ptr{position:absolute;left:50%;top:-14px;z-index:2;width:0;height:0;margin-left:-13px;border-left:13px solid transparent;border-right:13px solid transparent;border-top:26px solid #C8241A;filter:drop-shadow(0 3px 3px rgba(0,0,0,.3))}
+.wheel-hub{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFE9A8,#E7B341 60%,#A86E12);color:#7A2A10;font-weight:900;display:grid;place-items:center;box-shadow:0 4px 10px rgba(0,0,0,.3);z-index:2}
+.die{font-size:110px;line-height:1;color:var(--ink);filter:drop-shadow(0 10px 14px rgba(42,51,80,.35))}
+.die.rolling{animation:die-roll .14s linear infinite}
+.die.landed{animation:die-land .4s cubic-bezier(.3,1.6,.5,1)}
+@keyframes die-roll{50%{transform:translateY(-14px) rotate(25deg)}}
+@keyframes die-land{from{transform:scale(1.35)}}
+.game-result{margin:6px auto 0;max-width:420px;text-align:center;padding:10px 16px;border-radius:16px;background:var(--bg);color:var(--muted);font-weight:700}
+.game-result.win{background:linear-gradient(135deg,#FFF1C2,#FFD48A);color:#8A3A0A}
+@media (prefers-reduced-motion:reduce){.die.rolling,.die.landed{animation:none!important}}
+.side-ov{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;background:rgba(20,16,32,.72);backdrop-filter:blur(4px)}
+.side-card{position:relative;display:grid;justify-items:center;gap:10px;width:min(380px,92vw);padding:26px 20px 18px;border-radius:24px;background:linear-gradient(180deg,#FFF6E0,#FFE3B0);box-shadow:0 30px 70px -20px rgba(0,0,0,.6);animation:card-flip .5s cubic-bezier(.3,1.3,.5,1) both}
+.side-card img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:18px;box-shadow:0 0 0 4px #fff,0 0 30px 6px rgba(255,200,90,.8);animation:side-glow 1.6s ease-in-out infinite alternate}
+@keyframes side-glow{to{box-shadow:0 0 0 4px #fff,0 0 50px 16px rgba(255,170,220,.9)}}
+.side-tag{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#8E5CC9;color:#fff;font-weight:900;font-size:12px;letter-spacing:.3em;padding:3px 14px;border-radius:999px}
+.side-t{font-size:18px;color:#7A3A10;letter-spacing:.1em}
+.side-cd{font-family:var(--f-num);font-size:28px;font-weight:800;color:#8E5CC9}
+.side-sub{font-size:12px;color:#8A6A4A}
 .toast-stack{display:grid;gap:8px;justify-items:end}
 .slipper-btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:10px 18px;font:inherit;font-weight:800;font-size:15px;color:#fff;background:linear-gradient(135deg,#E2471E,#F59E0B);box-shadow:0 12px 24px -10px rgba(226,71,30,.7);cursor:pointer;animation:slip-pulse .8s ease-in-out infinite alternate}
 .slipper-btn:disabled{animation:none;background:#3B2E57;color:#E6E3F0;box-shadow:none;font-weight:600;font-size:13px;cursor:default}
@@ -1769,27 +1792,146 @@ function openShop(tid){
   shopTarget = tid || shopTarget || (S.towers.find(t => t.claimedBy === S.uid) || S.towers[0] || {}).id || null;
   S.sheet = 'shop'; S.openId = null; renderShop(true);
 }
+const WHEEL = [
+  {k:'jackpot', label:'財神 ×5', mult:5,   w:3,  color:'#F5C452', ink:'#7A4A00'},
+  {k:'x3',      label:'三倍',    mult:3,   w:5,  color:'#E2471E', ink:'#fff'},
+  {k:'x2',      label:'兩倍',    mult:2,   w:15, color:'#FF9A4D', ink:'#fff'},
+  {k:'x1',      label:'回本',    mult:1,   w:20, color:'#6B9CDE', ink:'#fff'},
+  {k:'x0',      label:'槓龜',    mult:0,   w:18, color:'#A9B2C7', ink:'#fff'},
+  {k:'side',    label:'看匠人側臉', mult:0, w:12, color:'#8E5CC9', ink:'#fff', side:true},
+  {k:'half',    label:'倒扣一半', mult:-.5, w:15, color:'#3B2E57', ink:'#E6E3F0'},
+  {k:'shuai',   label:'衰神附身', mult:0,   w:10, color:'#59606E', ink:'#E6E3F0', luck:true},
+];
+const DICE = {6:{mult:3,label:'六點！三倍功德'},5:{mult:2,label:'五點，兩倍功德'},4:{mult:1,label:'四點，回本'},3:{mult:0,label:'三點，槓龜'},2:{mult:0,label:'兩點！罰看匠人最完美的側臉',side:true},1:{mult:-.5,label:'一點！倒扣一半'}};
+const DIE_FACE = ['','⚀','⚁','⚂','⚃','⚄','⚅'];
+const STAKES = [10, 50, 100, 300];
+let shopTab = 'decor', stake = 10, shopBusy = false, lastGamble = null;
+function pickWeighted(list){ let r = Math.random() * list.reduce((a, x) => a + x.w, 0); for (const x of list){ if ((r -= x.w) < 0) return x; } return list[list.length-1]; }
+async function gamble(game, onResult){
+  if (shopBusy || !canAct()) return;
+  pay.cur = 'merit';
+  const bal = sourceBal(pay.src).merit;
+  if (bal < stake){ toastNotice(`功德不夠，還差 ${fmt(stake - bal)}。`); return; }
+  let mult, label, seg = null, face = 0;
+  if (game === 'wheel'){ seg = pickWeighted(WHEEL); mult = seg.mult; label = seg.label; }
+  else { face = 1 + Math.floor(Math.random() * 6); mult = DICE[face].mult; label = DICE[face].label; }
+  let net = Math.round(stake - stake * mult);          // what leaves the wallet (negative = winnings)
+  if (net > bal) net = bal;                             // can't owe more than you have
+  shopBusy = true;
+  const id = 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  const doc = {by:S.uid, kind:'gamble', item: game + ':' + (seg ? seg.k : face), target:'shop', from:pay.src, merit: net, incense:0, stake, at:Date.now()};
+  S.purchases.push({id, ...doc});
+  try { await S.db.doc('purchases/' + id).set(doc); }
+  catch(e){ S.purchases = S.purchases.filter(x => x.id !== id); shopBusy = false; handleWriteErr(e); renderShop(false); return; }
+  let stolen = null;
+  if (seg && seg.luck){
+    const have = LUCK.filter(x => (S.luck.s[x.k] || 0) > 0);
+    if (have.length){ const x = have[Math.floor(Math.random()*have.length)]; const n = Math.min(S.luck.s[x.k], 2); S.luck.s[x.k] -= n; stolen = {[x.k]: n};
+      S.luck.log.unshift({gid:'shuai', tower:'小賣部', lost: stolen, at: Date.now()}); S.luck.log = S.luck.log.slice(0,8); saveLuck(); }
+  }
+  onResult({seg, face, mult, net, label, stolen, side: seg ? !!seg.side : !!DICE[face].side});
+}
+function gambleResult(res, anchor){
+  shopBusy = false;
+  const win = res.net < 0, r = anchor.getBoundingClientRect(), x = r.left + r.width/2, y = r.top + r.height/2;
+  const text = win ? `${res.label}！功德 +${fmt(-res.net)}` : res.mult === 1 ? `${res.label}，功德拿回來了` : `${res.label}，功德 −${fmt(res.net)}` + (res.stolen ? `，還被摸走 ${lostText(res.stolen)}` : '');
+  lastGamble = {text, win, at: Date.now(), face: res.face};
+  fxLayer();
+  if (win){ chime(res.mult >= 3); if (!reduceMotion){ burst(x, y, res.mult >= 3 ? 90 : 50, 1.3); embers(x, y, 30); } if (res.mult >= 3) banner(res.mult >= 5 ? '財神降臨' : '三倍功德', '功德 +' + fmt(-res.net), res.mult >= 5, 'fire'); }
+  else { try { wah(); } catch(e){} if (!reduceMotion) dust(x, y, 30); }
+  loop(); render();
+  if (res.side) setTimeout(sidePunish, 500);
+}
+function sidePhoto(){ return safeImg((S.jail && S.jail.side) || '') || safeImg(jailPhoto()); }
+function sidePunish(){
+  const src = sidePhoto();
+  const close = () => ov.remove();
+  const ov = h('div',{class:'side-ov',role:'dialog','aria-label':'懲罰：欣賞匠人最完美的側臉',onclick:close},
+    h('div',{class:'side-card'},
+      h('div',{class:'side-tag',text:'懲罰'}),
+      h('b',{class:'side-t',text:'請欣賞匠人最完美的側臉'}),
+      src ? h('img',{src,alt:'匠人的側臉'}) : h('div',{class:'muted',text:'（側臉照片還在路上）'}),
+      h('span',{class:'side-cd',text:'5'}),
+      h('span',{class:'side-sub',text:'看滿 5 秒才能離開'})));
+  ov.onclick = null; document.body.append(ov);
+  try { chime(false); } catch(e){}
+  let n = 5; const cd = ov.querySelector('.side-cd');
+  const t = setInterval(() => { n--; cd.textContent = n > 0 ? String(n) : '✓'; if (n <= 0){ clearInterval(t); ov.querySelector('.side-sub').textContent = '點一下任意處離開'; ov.onclick = close; } }, 1000);
+}
+function wheelEl(){
+  const n = WHEEL.length, seg = 360 / n;
+  const wrap = h('div',{class:'wheel-wrap'});
+  const disk = h('div',{class:'wheel',id:'wheel-disk'});
+  disk.style.background = 'conic-gradient(' + WHEEL.map((x, i) => `${x.color} ${i*seg}deg ${(i+1)*seg}deg`).join(',') + ')';
+  WHEEL.forEach((x, i) => { const l = h('span',{class:'wheel-l',text:x.label}); l.style.setProperty('--a', (i*seg + seg/2) + 'deg'); l.style.color = x.ink; disk.append(l); });
+  disk.style.transform = `rotate(${wheelAngle}deg)`;
+  wrap.append(h('div',{class:'wheel-ptr'}), disk, h('div',{class:'wheel-hub',text:'轉'}));
+  return wrap;
+}
+let wheelAngle = 0;
+function spinWheel(btn){
+  gamble('wheel', res => {
+    const n = WHEEL.length, seg = 360 / n, i = WHEEL.indexOf(res.seg);
+    const target = 360 - (i*seg + seg/2) + (Math.random() - .5) * seg * .6;   // pointer is at the top
+    wheelAngle = wheelAngle - (wheelAngle % 360) + 360*5 + target;
+    const disk = document.getElementById('wheel-disk');
+    if (disk){ disk.style.transition = reduceMotion ? 'none' : 'transform 3.2s cubic-bezier(.17,.67,.12,1)'; disk.style.transform = `rotate(${wheelAngle}deg)`; }
+    try { knockSoft(); } catch(e){}
+    setTimeout(() => gambleResult(res, disk || btn), reduceMotion ? 50 : 3300);
+  });
+}
+function rollDice(btn){
+  gamble('dice', res => {
+    const die = document.getElementById('die-face');
+    let k = 0; const spin = setInterval(() => { if (die) die.textContent = DIE_FACE[1 + Math.floor(Math.random()*6)]; if (++k > 14){ clearInterval(spin); if (die){ die.textContent = DIE_FACE[res.face]; die.classList.add('landed'); } setTimeout(() => gambleResult(res, die || btn), 350); } }, 90);
+    if (die){ die.classList.remove('landed'); die.classList.add('rolling'); setTimeout(() => die.classList.remove('rolling'), 1400); }
+  });
+}
 function renderShop(fresh){
   if (S.sheet !== 'shop') return;
-  const t = S.towers.find(x => x.id === shopTarget);
-  const sel = h('select',{class:'shop-sel','aria-label':'要送到哪座塔',onchange:e => { shopTarget = e.target.value; renderShop(false); }},
-    ...S.towers.map(x => h('option',{value:x.id, selected: x.id === shopTarget}, x.name + (x.claimedBy === S.uid ? '（您的塔）' : ''))));
-  const grid = h('div',{class:'shop-grid'}, ...SHOP.map(it => {
-    const price = priceOf(it, pay.cur);
-    return h('button',{class:'shop-item',type:'button',disabled: !canAct() || !t, onclick: async (e) => {
-        const btn = e.currentTarget; btn.disabled = true;
-        const b = await buy('decor', it.k, t.id, price); btn.disabled = false;
-        if (b){ const r = btn.getBoundingClientRect(); fxLayer(); if (!reduceMotion) burst(r.left + r.width/2, r.top + r.height/2, 26, .8); loop(); chime(false);
-          toastNotice(`已把「${it.name}」${t.claimedBy === S.uid ? '擺上您的塔位' : '送到「' + t.name + '」'}。`); }
-      }},
-      h('span',{class:'shop-e',text:it.e}), h('b',{text:it.name}),
-      h('span',{class:'shop-p',text: (pay.cur === 'merit' ? '功德 ' : '香火 ') + fmt(price)}));
-  }));
+  if (shopBusy && !fresh) return;
+  const tabs = h('div',{class:'shop-tabs',role:'tablist'}, ...[['decor','🎁 塔位裝飾'],['wheel','🎡 轉輪盤'],['dice','🎲 擲骰子']].map(([k, l]) =>
+    h('button',{class:'chip' + (shopTab === k ? ' on' : ''),type:'button',role:'tab','aria-selected': shopTab === k ? 'true' : 'false',onclick:()=>{ if (shopBusy) return; shopTab = k; lastGamble = null; renderShop(false); }}, l)));
+  let main;
+  if (shopTab === 'decor'){
+    const t = S.towers.find(x => x.id === shopTarget);
+    const sel = h('select',{class:'shop-sel','aria-label':'要送到哪座塔',onchange:e => { shopTarget = e.target.value; renderShop(false); }},
+      ...S.towers.map(x => h('option',{value:x.id, selected: x.id === shopTarget}, x.name + (x.claimedBy === S.uid ? '（您的塔）' : ''))));
+    const grid = h('div',{class:'shop-grid'}, ...SHOP.map(it => {
+      const price = priceOf(it, pay.cur);
+      return h('button',{class:'shop-item',type:'button',disabled: !canAct() || !t, onclick: async (e) => {
+          const btn = e.currentTarget; btn.disabled = true;
+          const b = await buy('decor', it.k, t.id, price); btn.disabled = false;
+          if (b){ const r = btn.getBoundingClientRect(); fxLayer(); if (!reduceMotion) burst(r.left + r.width/2, r.top + r.height/2, 26, .8); loop(); chime(false);
+            toastNotice(`已把「${it.name}」${t.claimedBy === S.uid ? '擺上您的塔位' : '送到「' + t.name + '」'}。`); }
+        }},
+        h('span',{class:'shop-e',text:it.e}), h('b',{text:it.name}),
+        h('span',{class:'shop-p',text: (pay.cur === 'merit' ? '功德 ' : '香火 ') + fmt(price)}));
+    }));
+    main = h('div',{}, h('div',{class:'pay-row',style:'margin-bottom:8px'}, h('span',{class:'pay-l',text:'送到'}), sel),
+      payPicker(() => renderShop(false)), grid,
+      t && towerDecor(t.id).length ? h('p',{class:'muted',style:'margin:14px 0 0;font-size:13px',text:`「${t.name}」目前有：` + towerDecor(t.id).map(b => SHOP_BY[b.item].e).join(' ')}) : null);
+  } else {
+    pay.cur = 'merit';
+    const bal = sourceBal(pay.src).merit;
+    const stakes = h('div',{class:'pay-row'}, h('span',{class:'pay-l',text:'押'}),
+      ...STAKES.map(v => h('button',{class:'chip' + (stake === v ? ' on' : ''),type:'button',disabled: bal < v,onclick:()=>{ stake = v; renderShop(false); }}, '功德 ' + v)));
+    const srcs = paySources(); if (!srcs.some(s => s.id === pay.src)) pay.src = 'wallet';
+    const src = h('div',{class:'pay-row'}, h('span',{class:'pay-l',text:'付款'}),
+      ...srcs.map(s => h('button',{class:'chip' + (pay.src === s.id ? ' on' : ''),type:'button',onclick:()=>{ pay.src = s.id; renderShop(false); }}, s.label)),
+      h('span',{class:'pay-bal'}, '功德餘額 ', h('b',{text:fmt(bal)})));
+    const box = h('div',{class:'pay-box'}, src, stakes,
+      h('p',{class:'pay-note',text: shopTab === 'wheel'
+        ? '財神 ×5、三倍、兩倍會把押的功德翻倍給您；回本拿回原本的；槓龜押的沒了；倒扣一半要再多賠一半；衰神附身除了槓龜，還會從福袋摸走一點運勢；看匠人側臉除了槓龜，還要盯著他最完美的側臉 5 秒。'
+        : '擲出 6 點三倍、5 點兩倍、4 點回本；3 點槓龜；2 點槓龜還要罰看匠人最完美的側臉；1 點要倒扣一半。'}));
+    const stage = shopTab === 'wheel'
+      ? h('div',{class:'game-stage'}, wheelEl(), h('button',{class:'btn ember',type:'button',disabled: !canAct() || bal < stake,onclick:e=>spinWheel(e.currentTarget)}, `轉一次（功德 ${stake}）`))
+      : h('div',{class:'game-stage'}, h('div',{class:'die',id:'die-face',text: DIE_FACE[(lastGamble && lastGamble.face) || 6]}), h('button',{class:'btn ember',type:'button',disabled: !canAct() || bal < stake,onclick:e=>rollDice(e.currentTarget)}, `擲一次（功德 ${stake}）`));
+    main = h('div',{}, box, stage, lastGamble ? h('div',{class:'game-result' + (lastGamble.win ? ' win' : ''),text:lastGamble.text}) : null);
+  }
   const content = h('div',{},
-    h('div',{class:'section-t',style:'margin-top:0;font-size:26px'},'小賣部', h('small',{text:'買點東西裝飾塔位，或送去朋友的塔'})),
-    h('div',{class:'pay-row',style:'margin-bottom:8px'}, h('span',{class:'pay-l',text:'送到'}), sel),
-    payPicker(() => renderShop(false)), grid,
-    t && towerDecor(t.id).length ? h('p',{class:'muted',style:'margin:14px 0 0;font-size:13px',text:`「${t.name}」目前有：` + towerDecor(t.id).map(b => SHOP_BY[b.item].e).join(' ')}) : null);
+    h('div',{class:'section-t',style:'margin-top:0;font-size:26px'},'小賣部', h('small',{text: shopTab === 'decor' ? '買點東西裝飾塔位，或送去朋友的塔' : '花功德試試手氣，小賭怡情'})),
+    tabs, main);
   if (fresh || !shopBody || !document.contains(shopBody)){ showSheet(content); shopBody = content; }
   else { shopBody.replaceWith(content); shopBody = content; }
 }
@@ -1878,14 +2020,19 @@ function renderJail(fresh){
     h('span',{class:'ev-when god-time',text:clock(b.at) + '・' + ago(b.at)}))));
   const photoIn = h('input',{type:'file',accept:'image/*',class:'visually-hidden',id:'jail-photo-in',onchange: async e => {
     const f = e.target.files[0]; if (!f) return;
-    try { const src = await shrink(f); await S.db.doc('site/jail').set({photo: src, at: Date.now(), by: S.uid}); S.jail = {photo: src}; render(); toastNotice('已更換小黑屋的照片。'); }
+    try { const src = await shrink(f); const next = {...(S.jail||{}), photo: src, at: Date.now(), by: S.uid}; await S.db.doc('site/jail').set(next); S.jail = next; render(); toastNotice('已更換小黑屋的照片。'); }
     catch(err){ toastNotice('照片沒有換成功，請再試一次。'); }
   }});
   const content = h('div',{},
     h('div',{class:'section-t',style:'margin-top:0;font-size:26px'},'小黑屋', h('small',{text:'匠人被關在這裡反省'})),
     h('p',{class:'jail-count'}, '已被燙 ', h('b',{text:fmt(counts.smoke)}), ' 次・被拍 ', h('b',{text:fmt(counts.brick)}), ' 次'),
     cell, payPicker(() => renderJail(false)), acts,
-    S.isOwner ? h('div',{style:'margin-top:10px'}, photoIn, h('label',{class:'btn ghost sm',for:'jail-photo-in'},'更換匠人照片')) : null,
+    S.isOwner ? h('div',{style:'margin-top:10px;display:flex;gap:8px;flex-wrap:wrap'}, photoIn, h('label',{class:'btn ghost sm',for:'jail-photo-in'},'更換匠人照片'),
+      h('input',{type:'file',accept:'image/*',class:'visually-hidden',id:'jail-side-in',onchange: async e => {
+        const f = e.target.files[0]; if (!f) return;
+        try { const src = await shrink(f); const next = {...(S.jail||{}), side: src, at: Date.now(), by: S.uid}; await S.db.doc('site/jail').set(next); S.jail = next; toastNotice('已更換匠人的側臉照片。'); }
+        catch(err){ toastNotice('照片沒有換成功，請再試一次。'); } }}),
+      h('label',{class:'btn ghost sm',for:'jail-side-in'},'更換側臉照片')) : null,
     h('div',{class:'section-t'}, '行刑紀錄', h('small',{text:'最近 10 筆，燙痕和腫包幾分鐘後就會消退'})),
     hits.length ? log : h('p',{class:'muted',text:'還沒有人動手。'}));
   if (fresh || !jailBody || !document.contains(jailBody)){ showSheet(content).querySelector('.sheet').classList.add('jail-sheet'); jailBody = content; }
