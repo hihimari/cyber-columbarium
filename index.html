@@ -295,6 +295,18 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,.drop-card:focus
 .god-card-body b{font-size:15px;color:var(--ink)}
 @keyframes card-flip{from{opacity:0;transform:perspective(600px) rotateY(80deg) translateY(20px)}}
 .god-list{display:grid;gap:6px}
+.steal-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:14px 0 12px}
+.steal-list{display:grid;gap:8px}
+.steal-item{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;padding:8px 12px 8px 8px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.steal-item:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 22px -16px rgba(42,51,80,.6)}
+.steal-item:disabled{opacity:.5;cursor:default}
+.steal-ph{width:52px;height:52px;border-radius:50%;overflow:hidden;background:var(--bg)}
+.steal-ph img{width:100%;height:100%;object-fit:cover}
+.steal-t{display:grid;gap:2px;min-width:0}
+.steal-t b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.steal-t span{font-size:12px;color:var(--hint)}
+.steal-go{font-size:12px;font-weight:700;color:#fff;background:#2E2440;padding:5px 12px;border-radius:999px;white-space:nowrap}
+.steal-item:disabled .steal-go{background:var(--line);color:var(--muted)}
 /* shop */
 .shop-chip{display:inline-flex;align-items:center;gap:5px;height:40px;padding:0 12px;border-radius:999px;border:0;background:transparent;color:var(--ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .shop-chip:hover{background:var(--bg)}
@@ -328,7 +340,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,.drop-card:focus
 .jail-card .drop-name{color:#3B2E57}
 .jail-dock{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:20;gap:4px;cursor:pointer;isolation:isolate}
 .jail-dock::before{content:"";position:absolute;left:50%;top:50%;width:260px;height:260px;margin:-130px 0 0 -130px;border-radius:50%;z-index:-1;pointer-events:none;background:radial-gradient(closest-side,rgba(16,12,28,.32),rgba(16,12,28,.16) 50%,rgba(16,12,28,0))}
-.jail-house{width:118px;line-height:0;transition:transform .2s;filter:drop-shadow(0 6px 10px rgba(20,16,32,.35))}
+.jail-house{width:132px;line-height:0;transition:transform .2s;filter:drop-shadow(0 6px 10px rgba(20,16,32,.35))}
 .jail-house svg{display:block;width:100%;height:auto}
 .jh-bulb{animation:jh-flicker 3.2s steps(1) infinite}
 @keyframes jh-flicker{0%,100%{opacity:1}46%{opacity:.25}48%{opacity:1}50%{opacity:.3}52%{opacity:1}}
@@ -559,6 +571,7 @@ label.btn{cursor:pointer;display:inline-block}
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v3.6L4.3 15.4A1 1 0 0 0 5.2 17h13.6a1 1 0 0 0 .9-1.6L18 12.6V9a6 6 0 0 0-6-6Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 19.5a2.6 2.6 0 0 0 5 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         <span class="dot" id="bell-dot" hidden></span>
       </button>
+      <button class="shop-chip" id="btn-steal" type="button" aria-label="派塔靈偷香"><span aria-hidden="true">🥷</span> 偷香</button>
       <button class="shop-chip" id="btn-shop" type="button" aria-label="小賣部"><span aria-hidden="true">🏪</span> 小賣部</button>
       <button class="btn" id="btn-new" type="button">開新塔位</button>
       <div id="bell-panel" class="bell-panel" hidden></div>
@@ -1393,7 +1406,7 @@ function spiritToken(kind, tid, size){
   if (size) el.style.setProperty('--ss', size + 'px');
   return el;
 }
-const OUTCOME = {beaten:'被揍了一頓，吐回一半', fled:'沒揍到，叼著香火跑了', released:'被放走了', full:'吃飽自己走了'};
+const OUTCOME = {beaten:'被揍了一頓，吐回一半', fled:'沒揍到，叼著香火跑了', released:'被放走了', full:'吃飽自己走了', recalled:'被主人叫回去了'};
 function raidOutcome(r){ return r.end ? r.outcome : (raidDone(r) ? 'full' : null); }
 
 let raiding = new Set();
@@ -1542,6 +1555,69 @@ function raidersOverlay(t){
   });
   return wrap;
 }
+/* ---------- send your own spirit out to steal ---------- */
+function myActiveRaid(){ const now = Date.now(); return S.raids.find(r => r.by === S.uid && !r.demo && !raidDone(r, now)) || null; }
+function stealTargets(){
+  const mine = myTower(); if (!mine) return [];
+  return S.towers.filter(t => t.id !== mine.id && t.claimedBy !== S.uid);
+}
+async function sendThief(t){
+  const mine = myTower(); if (!mine || !canAct() || myActiveRaid()) return;
+  const cap = r1(Math.min(CAP, burnerLeft(t.id)));
+  if (cap < .5){ toastNotice(`「${t.name}」的香爐沒什麼香火了，換一座吧。`); return; }
+  const id = 'u_' + S.uid.slice(0,8) + '_' + Date.now().toString(36);
+  const doc = {tid: t.id, from: mine.id, kind: 'thief', by: S.uid, start: Date.now(), cap, sent: true};
+  S.raids.push({id, ...doc}); render();
+  try { await S.db.doc('raids/' + id).set(doc); chime(false); toastNotice(`「${mine.name}」的塔靈戴上蒙眼布，溜進「${t.name}」偷吸香火了。`); }
+  catch(e){ S.raids = S.raids.filter(x => x.id !== id); render(); handleWriteErr(e); }
+}
+async function recallThief(r){
+  if (!r || r.by !== S.uid || raidDone(r)) return;
+  const eaten = raidEaten(r);
+  if (await writeRaid(r, {end: Date.now(), eaten, back: 0, outcome: 'recalled', endBy: S.uid}))
+    toastNotice(`塔靈回來了，帶回 ${fmt(eaten)} 炷香火。`);
+}
+let stealBody = null;
+function openSteal(){ S.sheet = 'steal'; S.openId = null; renderSteal(true); }
+function renderSteal(fresh){
+  if (S.sheet !== 'steal') return;
+  const mine = myTower(), active = myActiveRaid();
+  const head = h('div',{class:'section-t',style:'margin-top:0;font-size:26px'}, '派塔靈偷香', h('small',{text:'選一座塔，讓您的塔靈戴上蒙眼布去偷吸香火'}));
+  let body;
+  if (!mine){
+    body = h('p',{class:'muted',text:'要先認領自己的塔位，才會有自己的塔靈可以派出去。'});
+  } else {
+    const parts = [];
+    if (active){
+      const t = S.towers.find(x => x.id === active.tid);
+      parts.push(h('div',{class:'raid-panel'}, h('div',{class:'raid-row thief'}, spiritToken('thief', mine.id, 44),
+        h('div',{class:'raid-t'}, h('b',{text:`您的塔靈正在「${t ? t.name : '某座塔'}」偷吸香火`}), h('span',{text:`已吸 ${fmt(raidEaten(active))} 炷・每小時 1 炷・最多待 3 小時`})),
+        h('div',{class:'raid-acts'},
+          t ? h('button',{class:'btn ghost sm',type:'button',onclick:()=>openTower(t.id)},'去看看') : null,
+          h('button',{class:'btn sm',type:'button',onclick:()=>recallThief(active)},'叫回來'))),
+        h('p',{class:'raid-note',text:'一次只能派一隻。叫回來就能帶走已經吸到的香火；被塔主揍到的話會吐回一半。'})));
+    }
+    const list = stealTargets();
+    const eligible = list.filter(t => burnerLeft(t.id) >= .5);
+    parts.push(h('div',{class:'steal-top'},
+      h('button',{class:'btn ember',type:'button',disabled: !!active || !eligible.length || !canAct(),onclick:()=>{ const t = eligible[Math.floor(Math.random()*eligible.length)]; if (t) sendThief(t); }},'🎲 隨機挑一座'),
+      h('span',{class:'muted',text: active ? '塔靈還沒回來，先等等。' : eligible.length ? `目前有 ${eligible.length} 座塔的香爐有香火可以偷。` : '目前每座塔的香爐都空空的，等大家上香吧。'})));
+    parts.push(h('div',{class:'steal-list'}, ...list.map(t => {
+      const left = burnerLeft(t.id), thieves = activeRaids(t.id).length;
+      if (t.claimedBy) wantProfiles([t.claimedBy]);
+      return h('button',{class:'steal-item',type:'button',disabled: !!active || left < .5 || !canAct(),onclick:()=>sendThief(t)},
+        h('span',{class:'steal-ph'}, safeImg(t.photo) ? h('img',{src:safeImg(t.photo),alt:''}) : null),
+        h('span',{class:'steal-t'}, h('b',{text:t.name}),
+          h('span',{text: (t.claimedBy ? '塔主 ' + nameOf(t.claimedBy) + '・' : '') + `香爐 ${fmt(left)} 炷` + (thieves ? `・已有 ${thieves} 隻在偷` : '')})),
+        h('span',{class:'steal-go',text: left < .5 ? '沒香火' : '派去偷'}));
+    })));
+    body = h('div',{}, ...parts);
+  }
+  const content = h('div',{}, head, body);
+  if (fresh || !stealBody || !document.contains(stealBody)){ showSheet(content); stealBody = content; }
+  else { stealBody.replaceWith(content); stealBody = content; }
+}
+
 function raidHistory(t){
   const now = Date.now();
   const ev = [];
@@ -1695,21 +1771,21 @@ let jailDock = null;
 function jailHouse(photo){
   const src = safeImg(photo);
   const el = h('div',{class:'jail-house','aria-hidden':'true'});
-  el.innerHTML = `<svg viewBox="0 0 140 130">
-    <defs><clipPath id="jh-win"><rect x="44" y="44" width="52" height="42" rx="4"/></clipPath>
-      <linearGradient id="jh-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A5468"/><stop offset="1" stop-color="#3A3546"/></linearGradient>
-      <pattern id="jh-brick" width="16" height="10" patternUnits="userSpaceOnUse"><path d="M0 0H16M0 5H16M8 0V5M0 5V10" stroke="rgba(0,0,0,.28)" stroke-width="1" fill="none"/></pattern></defs>
-    <ellipse cx="70" cy="124" rx="60" ry="6" fill="rgba(20,16,32,.35)"/>
-    <rect x="20" y="34" width="100" height="88" rx="4" fill="url(#jh-wall)"/>
-    <rect x="20" y="34" width="100" height="88" rx="4" fill="url(#jh-brick)"/>
-    <path d="M10 38 L70 4 L130 38 Z" fill="#2B2733"/><path d="M10 38 L70 4 L130 38" fill="none" stroke="#1A1720" stroke-width="3" stroke-linejoin="round"/>
-    <rect x="40" y="40" width="60" height="50" rx="6" fill="#15121C"/>
-    ${src ? `<image href="${src}" x="44" y="40" width="52" height="52" preserveAspectRatio="xMidYMid slice" clip-path="url(#jh-win)" style="filter:grayscale(.6) brightness(.8)"/>` : ''}
-    <g stroke="#1A1720" stroke-width="3.4" stroke-linecap="round"><path d="M53 44V86M64 44V86M75 44V86M86 44V86"/></g>
-    <rect x="40" y="40" width="60" height="50" rx="6" fill="none" stroke="#1A1720" stroke-width="4"/>
-    <rect x="58" y="96" width="24" height="26" rx="2" fill="#24202C"/><circle cx="77" cy="110" r="1.8" fill="#C9A24A"/>
-    <rect x="50" y="14" width="40" height="14" rx="3" fill="#C8241A"/><text x="70" y="24.5" text-anchor="middle" font-size="9" font-weight="900" fill="#FFE7A8" font-family="sans-serif" letter-spacing="1">小黑屋</text>
-    <circle class="jh-bulb" cx="104" cy="48" r="3" fill="#FFB347"/>
+  const bars = [30,48,66,84,102,120].map(x => `<rect x="${x-3}" y="22" width="6" height="88" rx="3" fill="#2B2733"/>`).join('');
+  const fist = (x, flip) => `<g transform="translate(${x} 82)${flip ? ' scale(-1 1)' : ''}">
+      <rect x="-14" y="-17" width="28" height="36" rx="8" fill="#F2C9A5" stroke="#2B2733" stroke-width="3.2"/>
+      <path d="M-14 -6 H7 M-14 2 H7 M-14 10 H7" stroke="#2B2733" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M7 -17 V19" stroke="#2B2733" stroke-width="2.6"/></g>`;
+  el.innerHTML = `<svg viewBox="0 0 150 132">
+    <defs><clipPath id="jh-in"><rect x="16" y="20" width="118" height="92" rx="6"/></clipPath></defs>
+    <rect x="16" y="20" width="118" height="92" rx="6" fill="#1C1924"/>
+    ${src ? `<image href="${src}" x="16" y="8" width="118" height="118" preserveAspectRatio="xMidYMid slice" clip-path="url(#jh-in)" style="filter:grayscale(.35) brightness(1.05)"/>` : ''}
+    <rect x="16" y="20" width="118" height="92" rx="6" fill="rgba(20,16,32,.12)"/>
+    ${bars}
+    ${fist(57, false)}${fist(93, true)}
+    <rect x="6" y="8" width="138" height="17" rx="8.5" fill="#3A3546" stroke="#1A1720" stroke-width="3"/>
+    <rect x="6" y="107" width="138" height="17" rx="8.5" fill="#3A3546" stroke="#1A1720" stroke-width="3"/>
+    <rect x="14" y="11.5" width="122" height="4" rx="2" fill="rgba(255,255,255,.18)"/>
   </svg>`;
   return el;
 }
@@ -2072,6 +2148,7 @@ function render(){
   renderHeader(); renderNotice(); renderBanner(); renderAsh(); renderMarquee(); renderGrid();
   if (S.sheet === 'tower') softSheet();
   else if (S.sheet === 'shop') renderShop(false);
+  else if (S.sheet === 'steal') renderSteal(false);
   else if (S.sheet === 'jail' && !jailBusy) renderJail(false);
 }
 let softTimer = 0;
@@ -2516,6 +2593,7 @@ $('#btn-new').addEventListener('click', openCreate);
 $('#btn-bell').addEventListener('click', () => toggleBell());
 $('#btn-ash').addEventListener('click', () => toggleAsh());
 $('#btn-shop').addEventListener('click', () => openShop());
+$('#btn-steal').addEventListener('click', () => openSteal());
 $('#mq-edit-btn').addEventListener('click', openMqEdit);
 $('#god-demo-btn').addEventListener('click', demoGod);
 $('#raid-demo-btn').addEventListener('click', raidDemo);
