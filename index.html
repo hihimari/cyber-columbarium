@@ -2345,7 +2345,7 @@ function renderTowerSheet(fresh){
     h('div',{class:'section-t'}, '香客名冊', h('small',{text:`${tallies.length} 位來過`})), ledger,
     decorSection(t),
     (() => {
-      const vs = godVisits(t.id).slice(-8).reverse();
+      const vs = godVisits(t.id).slice(-5).reverse();
       const gm = godMerit(t.id);
       return h('div',{},
         h('div',{class:'section-t'}, '神明來訪', h('small',{text: vs.length ? `神明加持功德共 ${fmt(gm)}` : '每小時有一位神明巡塔'})),
@@ -2474,10 +2474,12 @@ let posting = false;
 async function postMsg(t, input, parent){
   const text = input.value.trim(); if (!text || posting || !canAct()) return;
   posting = true;
+  const fid = input.id; input.value = '';
+  const clear = () => { const f = document.getElementById(fid); if (f) f.value = ''; };
   try {
     await S.db.collection('messages').add({towerId:t.id, by:S.uid, text:text.slice(0,300), at:Date.now(), parent: parent||null});
-    input.value=''; if (parent) S.replyTo = null; renderTowerSheet(false);
-  } catch(e){ handleWriteErr(e); }
+    clear(); if (parent) S.replyTo = null; renderTowerSheet(false); clear();
+  } catch(e){ const f = document.getElementById(fid); if (f && !f.value) f.value = text; handleWriteErr(e); }
   posting = false;
 }
 function towerNotes(t){
@@ -2492,8 +2494,10 @@ let notePosting = false;
 async function postNote(t, input){
   const text = input.value.trim(); if (!text || notePosting || !canAct() || t.claimedBy !== S.uid) return;
   notePosting = true;
-  try { await S.db.collection('notes').add({towerId:t.id, by:S.uid, text:text.slice(0,60), at:Date.now()}); input.value=''; renderTowerSheet(false); }
-  catch(e){ handleWriteErr(e); }
+  const fid = input.id; input.value = '';
+  const clear = () => { const f = document.getElementById(fid); if (f) f.value = ''; };
+  try { await S.db.collection('notes').add({towerId:t.id, by:S.uid, text:text.slice(0,60), at:Date.now()}); clear(); renderTowerSheet(false); clear(); }
+  catch(e){ const f = document.getElementById(fid); if (f && !f.value) f.value = text; handleWriteErr(e); }
   notePosting = false;
 }
 async function delNote(n){
