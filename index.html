@@ -295,6 +295,70 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,.drop-card:focus
 .god-card-body b{font-size:15px;color:var(--ink)}
 @keyframes card-flip{from{opacity:0;transform:perspective(600px) rotateY(80deg) translateY(20px)}}
 .god-list{display:grid;gap:6px}
+/* shop */
+.shop-chip{display:inline-flex;align-items:center;gap:5px;height:40px;padding:0 12px;border-radius:999px;border:0;background:transparent;color:var(--ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.shop-chip:hover{background:var(--bg)}
+.pay-box{display:grid;gap:8px;margin:6px 0 14px;padding:12px 14px;border-radius:16px;background:var(--bg)}
+.pay-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.pay-l{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--water);min-width:2.5em}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}
+.chip.on{background:var(--water);border-color:var(--water);color:#fff}
+.pay-bal{font-size:12px;color:var(--muted);margin-left:auto}
+.pay-bal b{font-family:var(--f-num);color:var(--ink)}
+.pay-note{margin:0;font-size:12px;color:var(--muted)}
+.shop-sel{border:1px solid var(--line);border-radius:999px;padding:7px 14px;background:var(--surface);color:var(--ink);font:inherit;max-width:100%}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.shop-item{display:grid;justify-items:center;gap:4px;padding:14px 8px 12px;border-radius:18px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.shop-item:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 12px 24px -16px rgba(42,51,80,.5)}
+.shop-item:disabled{opacity:.55}
+.shop-item b{font-size:14px}
+.shop-e{font-size:34px;line-height:1.1}
+.shop-e.sm{font-size:20px;text-align:center}
+.shop-p{font-family:var(--f-num);font-size:12px;color:var(--ember);font-weight:600}
+.decor-ring{position:absolute;inset:0;pointer-events:none;z-index:3}
+.decor-e{position:absolute;left:50%;top:50%;font-size:calc(var(--s,190px)*.15);line-height:1;transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(var(--s,190px)*-.5)) rotate(calc(var(--a)*-1));filter:drop-shadow(0 3px 4px rgba(42,51,80,.3))}
+.decor-e{animation:decor-bob 3s ease-in-out infinite;animation-delay:var(--dl,0s)}
+@keyframes decor-bob{50%{margin-top:-4px}}
+.decor-ring.golden::before{content:"";position:absolute;inset:-6%;border-radius:50%;box-shadow:0 0 0 3px rgba(245,196,82,.7),0 0 26px 6px rgba(245,196,82,.55);animation:breathe 3s ease-in-out infinite}
+.decor-list{display:grid;gap:4px}
+.decor-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:6px 10px;border-radius:12px;background:var(--bg);font-size:13px}
+.section-t .btn{font-size:12px}
+/* the little dark room */
+.jail-card .bubble .photo img{filter:grayscale(.75) brightness(.7) contrast(1.1)}
+.jail-card .drop-name{color:#3B2E57}
+.jail-bars{position:absolute;inset:10%;border-radius:50%;z-index:2;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 13%,rgba(30,28,40,.85) 13% 17%);-webkit-mask:radial-gradient(closest-side,#000 96%,transparent);mask:radial-gradient(closest-side,#000 96%,transparent)}
+.jail-sheet{background:linear-gradient(180deg,#2B2838,#1E1C28);color:#E6E3F0;border-color:#3B3850}
+.jail-sheet .section-t,.jail-sheet .jail-count b{color:#F3F0FA}
+.jail-sheet .muted,.jail-sheet .section-t small,.jail-sheet .pay-note,.jail-sheet .pay-bal{color:#A39FB8}
+.jail-sheet .pay-box{background:rgba(255,255,255,.06)}
+.jail-sheet .chip{background:transparent;color:#E6E3F0;border-color:#4A4660}
+.jail-sheet .chip.on{background:#E2471E;border-color:#E2471E}
+.jail-sheet .pay-bal b{color:#fff}
+.jail-sheet .god-row.bad{background:rgba(255,255,255,.05)}
+.jail-sheet .x{color:#C9C5DA}
+.jail-sheet .btn.ghost{color:#E6E3F0;border-color:#4A4660;background:transparent}
+.jail-marks{z-index:1}
+.jail-sheet.shake{animation:jail-shake .45s cubic-bezier(.36,.07,.19,.97)}
+@keyframes jail-shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(5px)}30%,50%,70%{transform:translateX(-9px)}40%,60%{transform:translateX(9px)}}
+.jail-count{margin:-6px 0 12px;color:#A39FB8}
+.jail-count b{font-family:var(--f-num);font-size:20px}
+.jail-cell{position:relative;width:min(320px,80vw);aspect-ratio:1;margin:0 auto 6px;border-radius:24px;overflow:hidden;background:#141219;box-shadow:inset 0 0 60px rgba(0,0,0,.8)}
+.jail-photo{position:absolute;inset:0}
+.jail-photo img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.5) brightness(.85)}
+.jail-photo>.muted{position:absolute;inset:0;display:grid;place-items:center}
+.jail-bars.big{inset:0;border-radius:0;-webkit-mask:none;mask:none;background:repeating-linear-gradient(90deg,transparent 0 15%,rgba(25,24,32,.92) 15% 19.5%),linear-gradient(180deg,rgba(25,24,32,.92) 0 5%,transparent 5% 95%,rgba(25,24,32,.92) 95%)}
+.jail-marks{position:absolute;inset:0;pointer-events:none}
+.mark{position:absolute;transform:translate(-50%,-50%) rotate(var(--rot))}
+.mark.smoke{width:28px;height:22px;border-radius:50%;background:radial-gradient(closest-side,#2A1A10,#6B3A1E 55%,rgba(180,90,40,.5) 75%,transparent)}
+.mark.brick{width:40px;height:32px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,120,120,.85),rgba(230,60,70,.55) 60%,transparent)}
+.mark.brick::after{content:"";position:absolute;left:-6px;top:8px;width:42px;height:8px;border-radius:3px;background:#F4D9B8;box-shadow:inset 0 0 0 1px rgba(150,110,70,.4);transform:rotate(-20deg)}
+.jail-say{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);max-width:86%;background:#fff;color:#2A3350;font-weight:700;font-size:14px;padding:6px 12px;border-radius:14px;text-align:center;animation:god-in .4s cubic-bezier(.3,1.4,.5,1) both;z-index:3}
+.jail-acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.jail-prop{position:fixed;left:0;top:0;font-size:54px;line-height:1;z-index:60;pointer-events:none;transform:translate(var(--tx),var(--ty)) translate(-50%,-50%);animation:prop-in .65s cubic-bezier(.5,0,.8,.6) both}
+.jail-prop.brick{animation:prop-throw .65s cubic-bezier(.4,0,.9,.5) both}
+@keyframes prop-in{from{transform:translate(var(--sx),var(--sy)) translate(-50%,-50%) rotate(-30deg) scale(1.3)}85%{transform:translate(var(--tx),var(--ty)) translate(-50%,-50%) rotate(-50deg) scale(.95)}100%{transform:translate(var(--tx),var(--ty)) translate(-50%,-50%) rotate(-45deg) scale(1)}}
+@keyframes prop-throw{from{transform:translate(var(--sx),var(--sy)) translate(-50%,-50%) rotate(0) scale(1.5)}100%{transform:translate(var(--tx),var(--ty)) translate(-50%,-50%) rotate(-540deg) scale(.9)}}
+@media (prefers-reduced-motion:reduce){.decor-e,.decor-ring.golden::before,.jail-sheet.shake,.jail-prop{animation:none!important}}
 /* tower spirits (incense thieves / moochers) */
 .spirit{--ss:44px;width:var(--ss);height:var(--ss);display:inline-block;flex:none;position:relative}
 .spirit svg{display:block;width:100%;height:100%;overflow:visible}
@@ -479,6 +543,7 @@ label.btn{cursor:pointer;display:inline-block}
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v3.6L4.3 15.4A1 1 0 0 0 5.2 17h13.6a1 1 0 0 0 .9-1.6L18 12.6V9a6 6 0 0 0-6-6Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 19.5a2.6 2.6 0 0 0 5 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         <span class="dot" id="bell-dot" hidden></span>
       </button>
+      <button class="shop-chip" id="btn-shop" type="button" aria-label="小賣部"><span aria-hidden="true">🏪</span> 小賣部</button>
       <button class="btn" id="btn-new" type="button">開新塔位</button>
       <div id="bell-panel" class="bell-panel" hidden></div>
     </div>
@@ -582,7 +647,7 @@ function setWander(el, seed, amp, dmin, dmax){
 /* state */
 const S = { db:null, user:null, uid:null, canWrite:null, isOwner:false,
   towers:[], tallies:[], messages:[], notes:[], profiles:{}, openId:null, ready:false, offline:false,
-  readOnly:false, sheet:null, replyTo:null, confirmDel:null, editing:false, lastSeen:0, marquee:null, ash:{total:0,last:{},log:[]}, luck:{s:{},check:Date.now(),log:[]}, sticks:[], localSticks:[], gods:[], raids:[], tips:[] };
+  readOnly:false, sheet:null, replyTo:null, confirmDel:null, editing:false, lastSeen:0, marquee:null, ash:{total:0,last:{},log:[]}, luck:{s:{},check:Date.now(),log:[]}, sticks:[], localSticks:[], gods:[], raids:[], tips:[], purchases:[], ashlog:[], jail:null };
 const pending = {}; // towerId -> {incense, merit}
 const inflight = {};
 
@@ -605,6 +670,7 @@ function towerTotals(tid){
   for (const t of S.tallies) if (t.towerId===tid){ incense+=t.incense||0; merit+=t.merit||0; }
   const p = pending[tid]; if (p){ incense+=p.incense; merit+=p.merit; }
   incense += raidDelta(tid);
+  for (const b of S.purchases) if (b.from === tid){ incense -= b.incense || 0; merit -= b.merit || 0; }
   return {incense: Math.round(incense*10)/10, merit};
 }
 function myTally(tid){ return S.tallies.find(t => t.towerId===tid && t.by===S.uid); }
@@ -831,11 +897,13 @@ function towerSticks(tid){
   const ids = new Set(S.sticks.map(x=>x.id));
   return [...S.sticks.filter(x=>x.towerId===tid), ...S.localSticks.filter(x=>x.towerId===tid && !ids.has(x.id))].sort((a,b)=>(a.at||0)-(b.at||0));
 }
+function towerAshTaken(tid){ const d = S.ashlog.find(x => x.id === tid); return d && d.at ? d : null; }
 function ashFill(t){
   const list = towerSticks(t.id);
   if (list.length < CAP) return {stage:'need', need:CAP - list.length, fill:0, ready:false, left:ASH_MS};
   const fullSince = list[CAP-1].at || 0;
-  const start = Math.max(fullSince, (S.ash.last||{})[t.id] || 0), now = Date.now();
+  const taken = towerAshTaken(t.id);
+  const start = Math.max(fullSince, taken ? taken.at : 0), now = Date.now();
   // replay thefts by bad deities since this viewer's ash started piling up
   let acc = 0, tp = start, stolenBy = null;
   for (const e of godVisits(t.id)){
@@ -844,7 +912,7 @@ function ashFill(t){
   }
   acc = Math.min(ASH_MS, acc + (now - tp));
   const fill = Math.max(0, Math.min(1, acc / ASH_MS));
-  return {stage:'fill', fill, ready: fill >= 1, left: Math.max(0, ASH_MS - acc), stolenBy};
+  return {stage:'fill', fill, ready: fill >= 1, left: Math.max(0, ASH_MS - acc), stolenBy, taken};
 }
 /* ---------- deities: a Monopoly-style visitor schedule, the same for every viewer ---------- */
 const GODS = {
@@ -1134,6 +1202,13 @@ async function collectAsh(t, wrap){
   const x = towerTotals(t.id), st = ashFill(t); if (!st.ready) return;
   ashBusy = true;
   const tier = incTier(x.incense), now = Date.now();
+  try {
+    const ref = S.db.doc('ashlog/' + t.id), cur = await ref.get();
+    const was = cur.exists ? cur.data() : null;
+    if (was && was.at && was.at > (st.taken ? st.taken.at : 0)){ ashBusy = false; S.ashlog = [{id:t.id, ...was}, ...S.ashlog.filter(a => a.id !== t.id)]; renderTowerSheet(false); toastNotice('慢了一步，這爐香灰剛被' + (was.by === S.uid ? '您' : '別人') + '收走了。'); return; }
+    await ref.set({at: now, by: S.uid});
+    S.ashlog = [{id:t.id, at: now, by: S.uid}, ...S.ashlog.filter(a => a.id !== t.id)];
+  } catch(e){ ashBusy = false; handleWriteErr(e); return; }
   const n = 1 + tier.lv + Math.floor(Math.random()*2);
   const text = FORTUNES[Math.floor(Math.random()*FORTUNES.length)];
   const before = S.ash.total || 0;
@@ -1474,6 +1549,229 @@ function raidHistory(t){
   }));
 }
 
+/* ---------- 小賣部 (shop) and 小黑屋 (the little dark room) ----------
+   Every purchase is one shared doc: purchases/<id> {by, kind:'decor'|'jail', item, target, from, merit, incense, at, removed?}
+   `from` is 'wallet' (the buyer's own earnings: everything they've offered or knocked across all towers)
+   or the id of a tower they've claimed (then that tower's totals go down). */
+const XCHG = 5; // 1 炷香火 = 5 功德
+const SHOP = [
+  {k:'orange', e:'🍊', name:'供品橘子', m:20},  {k:'flower', e:'💐', name:'一束鮮花', m:30},
+  {k:'wreath', e:'🌸', name:'花圈', m:40},      {k:'boba', e:'🧋', name:'珍珠奶茶', m:40},
+  {k:'bento', e:'🍱', name:'排骨便當', m:50},   {k:'lantern', e:'🏮', name:'大紅燈籠', m:60},
+  {k:'redpkt', e:'🧧', name:'紅包', m:88},      {k:'cake', e:'🎂', name:'生日蛋糕', m:120},
+  {k:'rainbow', e:'🌈', name:'一道彩虹', m:150},{k:'crown', e:'👑', name:'皇冠', m:300},
+  {k:'halo', e:'✨', name:'金身光環', m:500},
+];
+const SHOP_BY = Object.fromEntries(SHOP.map(x => [x.k, x]));
+const JAIL_ITEMS = {smoke:{e:'🚬', name:'煙燙', verb:'用煙燙了匠人', m:10}, brick:{e:'🧱', name:'磚頭', verb:'用磚頭拍了匠人', m:20}};
+const JAIL_LINES = {
+  smoke:['燙燙燙燙燙！','這是我的煙，不是拿來燙我的','手冊上沒寫這招啊','我錯了我錯了','嘶——好啦下次不敢了','可以換涼菸嗎'],
+  brick:['痛！','頭好暈…看到巨蟹男了','這塊磚頭有點重喔','你們好狠','我要申請假釋','腫一個包了啦'],
+};
+const priceOf = (it, cur) => cur === 'incense' ? Math.ceil(it.m / XCHG) : it.m;
+function walletBal(){
+  let merit = 0, incense = 0;
+  for (const v of S.tallies) if (v.by === S.uid){ merit += v.merit || 0; incense += v.incense || 0; }
+  for (const b of S.purchases) if (b.by === S.uid && b.from === 'wallet'){ merit -= b.merit || 0; incense -= b.incense || 0; }
+  return {merit, incense: r1(incense)};
+}
+function sourceBal(src){ return src === 'wallet' ? walletBal() : towerTotals(src); }
+function paySources(){
+  const list = [{id:'wallet', label:'我的錢包'}];
+  for (const t of S.towers) if (t.claimedBy === S.uid) list.push({id:t.id, label:`「${t.name}」塔位`});
+  return list;
+}
+let pay = {src:'wallet', cur:'merit'};
+function payPicker(onChange){
+  const srcs = paySources(); if (!srcs.some(s => s.id === pay.src)) pay.src = 'wallet';
+  const bal = sourceBal(pay.src);
+  const wrap = h('div',{class:'pay-box'});
+  wrap.append(
+    h('div',{class:'pay-row'}, h('span',{class:'pay-l',text:'付款'}),
+      ...srcs.map(s => h('button',{class:'chip' + (pay.src === s.id ? ' on' : ''),type:'button',onclick:()=>{ pay.src = s.id; onChange(); }}, s.label))),
+    h('div',{class:'pay-row'}, h('span',{class:'pay-l',text:'用'}),
+      h('button',{class:'chip' + (pay.cur === 'merit' ? ' on' : ''),type:'button',onclick:()=>{ pay.cur = 'merit'; onChange(); }}, '功德'),
+      h('button',{class:'chip' + (pay.cur === 'incense' ? ' on' : ''),type:'button',onclick:()=>{ pay.cur = 'incense'; onChange(); }}, '香火'),
+      h('span',{class:'pay-bal'}, '餘額：功德 ', h('b',{text:fmt(bal.merit)}), '・香火 ', h('b',{text:fmt(bal.incense)}))),
+    h('p',{class:'pay-note',text: pay.src === 'wallet' ? '錢包是您自己在各塔上香、敲木魚累積的量，花掉不影響塔位上的數字。1 炷香火可抵 5 功德。' : '從您認領的塔位扣，塔位上顯示的香火或功德會跟著減少。1 炷香火可抵 5 功德。'}));
+  return wrap;
+}
+async function buy(kind, item, target, cost){
+  if (!canAct()) return null;
+  const bal = sourceBal(pay.src);
+  const need = {merit: pay.cur === 'merit' ? cost : 0, incense: pay.cur === 'incense' ? cost : 0};
+  if (bal.merit < need.merit || bal.incense < need.incense){ toastNotice(`餘額不足，還差 ${fmt(pay.cur === 'merit' ? need.merit - bal.merit : r1(need.incense - bal.incense))} ${pay.cur === 'merit' ? '功德' : '炷香火'}。`); return null; }
+  const id = 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  const doc = {by:S.uid, kind, item, target, from:pay.src, ...need, at:Date.now()};
+  S.purchases.push({id, ...doc}); render();
+  try { await S.db.doc('purchases/' + id).set(doc); return {id, ...doc}; }
+  catch(e){ S.purchases = S.purchases.filter(x => x.id !== id); render(); handleWriteErr(e); return null; }
+}
+function towerDecor(tid){ return S.purchases.filter(b => b.kind === 'decor' && b.target === tid && !b.removed && SHOP_BY[b.item]).sort((a,b) => a.at - b.at); }
+function decorRing(tid, max){
+  const list = towerDecor(tid); if (!list.length) return null;
+  const ring = h('div',{class:'decor-ring','aria-hidden':'true'});
+  const show = list.slice(-max);
+  show.forEach((b, i) => {
+    const a = show.length === 1 ? 40 : -120 + i * 240 / (show.length - 1);
+    const sp = h('span',{class:'decor-e',text:SHOP_BY[b.item].e});
+    sp.style.setProperty('--a', a.toFixed(0) + 'deg'); sp.style.setProperty('--dl', (-i * .7).toFixed(1) + 's');
+    ring.append(sp);
+  });
+  if (list.some(b => b.item === 'halo')) ring.classList.add('golden');
+  return ring;
+}
+let shopTarget = null;
+function openShop(tid){
+  shopTarget = tid || shopTarget || (S.towers.find(t => t.claimedBy === S.uid) || S.towers[0] || {}).id || null;
+  S.sheet = 'shop'; S.openId = null; renderShop(true);
+}
+function renderShop(fresh){
+  if (S.sheet !== 'shop') return;
+  const t = S.towers.find(x => x.id === shopTarget);
+  const sel = h('select',{class:'shop-sel','aria-label':'要送到哪座塔',onchange:e => { shopTarget = e.target.value; renderShop(false); }},
+    ...S.towers.map(x => h('option',{value:x.id, selected: x.id === shopTarget}, x.name + (x.claimedBy === S.uid ? '（您的塔）' : ''))));
+  const grid = h('div',{class:'shop-grid'}, ...SHOP.map(it => {
+    const price = priceOf(it, pay.cur);
+    return h('button',{class:'shop-item',type:'button',disabled: !canAct() || !t, onclick: async (e) => {
+        const btn = e.currentTarget; btn.disabled = true;
+        const b = await buy('decor', it.k, t.id, price); btn.disabled = false;
+        if (b){ const r = btn.getBoundingClientRect(); fxLayer(); if (!reduceMotion) burst(r.left + r.width/2, r.top + r.height/2, 26, .8); loop(); chime(false);
+          toastNotice(`已把「${it.name}」${t.claimedBy === S.uid ? '擺上您的塔位' : '送到「' + t.name + '」'}。`); }
+      }},
+      h('span',{class:'shop-e',text:it.e}), h('b',{text:it.name}),
+      h('span',{class:'shop-p',text: (pay.cur === 'merit' ? '功德 ' : '香火 ') + fmt(price)}));
+  }));
+  const content = h('div',{},
+    h('div',{class:'section-t',style:'margin-top:0;font-size:26px'},'小賣部', h('small',{text:'買點東西裝飾塔位，或送去朋友的塔'})),
+    h('div',{class:'pay-row',style:'margin-bottom:8px'}, h('span',{class:'pay-l',text:'送到'}), sel),
+    payPicker(() => renderShop(false)), grid,
+    t && towerDecor(t.id).length ? h('p',{class:'muted',style:'margin:14px 0 0;font-size:13px',text:`「${t.name}」目前有：` + towerDecor(t.id).map(b => SHOP_BY[b.item].e).join(' ')}) : null);
+  if (fresh || !shopBody || !document.contains(shopBody)){ showSheet(content); shopBody = content; }
+  else { shopBody.replaceWith(content); shopBody = content; }
+}
+let shopBody = null;
+function decorSection(t){
+  const list = towerDecor(t.id);
+  wantProfiles(list.map(b => b.by));
+  const box = h('div',{class:'decor-list'});
+  if (!list.length) box.append(h('p',{class:'muted',style:'margin:0',text:'還沒有人送東西來。可以到小賣部挑一樣送給塔主。'}));
+  for (const b of list.slice().reverse().slice(0, 30)){
+    const it = SHOP_BY[b.item];
+    box.append(h('div',{class:'decor-row'}, h('span',{class:'shop-e sm',text:it.e}),
+      h('span',{class:'t'}, h('b',{text:nameOf(b.by)}), ` 送了${it.name}`), h('span',{class:'ev-when',text:ago(b.at)}),
+      canAct() && t.claimedBy === S.uid ? h('button',{class:'link',type:'button',onclick:async () => {
+        const {id, ...rest} = b; b.removed = true; render();
+        try { await S.db.doc('purchases/' + id).set({...rest, removed:true, removedBy:S.uid}); } catch(e){ b.removed = false; render(); handleWriteErr(e); }
+      }},'收起') : null));
+  }
+  return h('div',{}, h('div',{class:'section-t'}, '塔位裝飾', h('small',{text: list.length ? `${list.length} 件` : '小賣部買來的禮物'}),
+    canAct() ? h('button',{class:'btn ghost sm',type:'button',style:'margin-left:auto',onclick:()=>openShop(t.id)},'＋ 送裝飾') : null), box);
+}
+
+/* the little dark room */
+function jailPhoto(){
+  if (S.jail && S.jail.photo) return S.jail.photo;
+  const t = S.towers.find(x => /匠人/.test(x.name || '')); return t ? t.photo : '';
+}
+function jailHits(){ return S.purchases.filter(b => b.kind === 'jail' && JAIL_ITEMS[b.item]).sort((a,b) => a.at - b.at); }
+function jailCounts(){ const c = {smoke:0, brick:0}; for (const b of jailHits()) c[b.item]++; return c; }
+function buildJailCard(){
+  const c = h('button',{class:'drop-card jail-card',type:'button',onclick:openJail});
+  c._bubble = bubbleEl(jailPhoto(), '__jail');
+  c._bubble.append(h('div',{class:'jail-bars','aria-hidden':'true'}));
+  c._name = h('div',{class:'drop-name',text:'小黑屋'});
+  c._meta = h('div',{class:'drop-meta'});
+  c.dataset.photo = String(jailPhoto().length);
+  c.append(c._bubble, c._name, c._meta);
+  setWander(c, '__jail', 12, 20, 34);
+  return c;
+}
+function jailMarks(){
+  const now = Date.now(), wrap = h('div',{class:'jail-marks','aria-hidden':'true'});
+  for (const b of jailHits().filter(b => now - b.at < 864e5).slice(-40)){
+    const r = rng(b.id), x = 28 + r()*44, y = 26 + r()*48;
+    const m = h('span',{class:'mark ' + b.item}); m.style.left = x.toFixed(1) + '%'; m.style.top = y.toFixed(1) + '%';
+    m.style.setProperty('--rot', (r()*60 - 30).toFixed(0) + 'deg'); wrap.append(m);
+  }
+  return wrap;
+}
+let jailBody = null, jailSay = null;
+function openJail(){ S.sheet = 'jail'; S.openId = null; renderJail(true); }
+function renderJail(fresh){
+  if (S.sheet !== 'jail') return;
+  const counts = jailCounts(), hits = jailHits();
+  wantProfiles(hits.slice(-12).map(b => b.by));
+  const cell = h('div',{class:'jail-cell'},
+    h('div',{class:'jail-photo'}, safeImg(jailPhoto()) ? h('img',{src:safeImg(jailPhoto()),alt:'被關在小黑屋的匠人'}) : h('span',{class:'muted',text:'等待匠人入獄'}), jailMarks()),
+    h('div',{class:'jail-bars big','aria-hidden':'true'}),
+    jailSay ? h('div',{class:'jail-say',text:jailSay}) : null);
+  const acts = h('div',{class:'jail-acts'}, ...Object.entries(JAIL_ITEMS).map(([k, it]) =>
+    h('button',{class:'btn ' + (k === 'brick' ? '' : 'ember'),type:'button',disabled:!canAct(),onclick:(e) => jailHit(k, e.currentTarget)},
+      `${it.e} ${k === 'smoke' ? '買煙燙他' : '買磚頭拍他'}（${pay.cur === 'merit' ? '功德' : '香火'} ${fmt(priceOf(it, pay.cur))}）`)));
+  const log = h('div',{class:'god-list'}, ...hits.slice(-10).reverse().map(b => h('div',{class:'god-row bad'},
+    h('span',{class:'shop-e sm',text:JAIL_ITEMS[b.item].e}), h('span',{class:'t'}, h('b',{text:nameOf(b.by)}), ' ' + JAIL_ITEMS[b.item].verb),
+    h('span',{class:'ev-when god-time',text:clock(b.at) + '・' + ago(b.at)}))));
+  const photoIn = h('input',{type:'file',accept:'image/*',class:'visually-hidden',id:'jail-photo-in',onchange: async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { const src = await shrink(f); await S.db.doc('site/jail').set({photo: src, at: Date.now(), by: S.uid}); S.jail = {photo: src}; render(); toastNotice('已更換小黑屋的照片。'); }
+    catch(err){ toastNotice('照片沒有換成功，請再試一次。'); }
+  }});
+  const content = h('div',{},
+    h('div',{class:'section-t',style:'margin-top:0;font-size:26px'},'小黑屋', h('small',{text:'匠人被關在這裡反省'})),
+    h('p',{class:'jail-count'}, '已被燙 ', h('b',{text:fmt(counts.smoke)}), ' 次・被拍 ', h('b',{text:fmt(counts.brick)}), ' 次'),
+    cell, payPicker(() => renderJail(false)), acts,
+    S.isOwner ? h('div',{style:'margin-top:10px'}, photoIn, h('label',{class:'btn ghost sm',for:'jail-photo-in'},'更換匠人照片')) : null,
+    h('div',{class:'section-t'}, '行刑紀錄', h('small',{text:'最近 10 筆，燙痕和腫包 24 小時後消退'})),
+    hits.length ? log : h('p',{class:'muted',text:'還沒有人動手。'}));
+  if (fresh || !jailBody || !document.contains(jailBody)){ showSheet(content).querySelector('.sheet').classList.add('jail-sheet'); jailBody = content; }
+  else { jailBody.replaceWith(content); jailBody = content; }
+}
+let jailBusy = false;
+async function jailHit(kind, btn){
+  if (jailBusy) return;
+  const it = JAIL_ITEMS[kind]; jailBusy = true; btn.disabled = true;
+  const b = await buy('jail', kind, 'jail', priceOf(it, pay.cur));
+  if (!b){ jailBusy = false; btn.disabled = false; return; }
+  const photo = document.querySelector('.jail-photo'); const r = photo ? photo.getBoundingClientRect() : {left:innerWidth/2, top:innerHeight/2, width:0, height:0};
+  const rr = rng(b.id), tx = r.left + r.width * (.28 + rr()*.44), ty = r.top + r.height * (.26 + rr()*.48);
+  const L = fxLayer(), prop = h('span',{class:'jail-prop ' + kind,text:it.e});
+  prop.style.setProperty('--sx', (innerWidth - 80) + 'px'); prop.style.setProperty('--sy', (innerHeight - 60) + 'px');
+  prop.style.setProperty('--tx', tx + 'px'); prop.style.setProperty('--ty', ty + 'px');
+  L.append(prop);
+  setTimeout(() => {
+    if (kind === 'smoke'){ sizzle(); if (!reduceMotion){ dust(tx, ty, 18); embers(tx, ty, 8); } }
+    else { thud(); const sh = document.querySelector('.jail-sheet'); if (sh){ sh.classList.remove('shake'); void sh.offsetWidth; sh.classList.add('shake'); } if (!reduceMotion){ dust(tx, ty, 34); burst(tx, ty, 20, .9); } }
+    loop();
+    const f = h('span',{class:'fx-text ' + (kind === 'smoke' ? 'incense' : 'ash'),text: kind === 'smoke' ? '滋——' : '砰！'});
+    f.style.left = tx + 'px'; f.style.top = (ty - 20) + 'px'; f.style.setProperty('--rot', '-8deg'); f.style.fontSize = '30px';
+    L.append(f); setTimeout(() => f.remove(), 1300);
+    const lines = JAIL_LINES[kind]; jailSay = lines[Math.floor(Math.random() * lines.length)];
+    renderJail(false); clearTimeout(jailHit.t); jailHit.t = setTimeout(() => { jailSay = null; renderJail(false); }, 3500);
+  }, 650);
+  setTimeout(() => { prop.remove(); jailBusy = false; }, 1100);
+}
+function sizzle(){
+  try {
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const t = actx.currentTime, len = .9, buf = actx.createBuffer(1, actx.sampleRate*len, actx.sampleRate), d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 1.5) * (.6 + .4*Math.random());
+    const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+    f.type = 'highpass'; f.frequency.value = 2600; g.gain.value = .25;
+    src.buffer = buf; src.connect(f).connect(g).connect(actx.destination); src.start(t);
+  } catch(e){}
+}
+function thud(){
+  try {
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(40, t + .25);
+    g.gain.setValueAtTime(.7, t); g.gain.exponentialRampToValueAtTime(.001, t + .35);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + .4);
+    knockSoft();
+  } catch(e){}
+}
+
 /* ---------- rendering ---------- */
 function renderNotice(){
   const n = $('#notice'); n.replaceChildren();
@@ -1622,11 +1920,12 @@ function buildCard(t){
 function layoutPond(force){
   const g = $('#grid'); const W = g.clientWidth;
   if (!W || !S.towers.length) return;
-  const key = W + '|' + S.towers.map(t=>t.id).join(',');
+  const pondItems = [...S.towers, {id:'__jail'}];
+  const key = W + '|' + pondItems.map(t=>t.id).join(',');
   if (key === layoutKey && !force) return;
   layoutKey = key;
   const base = Math.max(120, Math.min(230, W/4.4)), LABEL = 70, PAD = 22, M = 16;
-  const items = S.towers.map(t => ({t, s: Math.min(W - 2*M, Math.round(base*(.6 + rng(t.id+'size')()*.7)))}))
+  const items = pondItems.map(t => ({t, s: Math.min(W - 2*M, Math.round(base*(.6 + rng(t.id+'size')()*.7)))}))
     .sort((a,b)=>b.s-a.s);
   let H = Math.max(360, items.reduce((a,i)=>a+(i.s+PAD)*(i.s+LABEL+PAD),0)*1.7/W);
   let placed;
@@ -1659,6 +1958,7 @@ function renderGrid(){
   if (S.towers.length){
     if (g.querySelector('.empty')) g.replaceChildren();
     const ids = new Set(S.towers.map(t=>t.id));
+    ids.add('__jail');
     for (const [id,el] of cards) if (!ids.has(id)){ el.remove(); cards.delete(id); }
     for (const t of S.towers){
       let c = cards.get(t.id);
@@ -1690,6 +1990,18 @@ function renderGrid(){
         c._raid.replaceChildren(...rs.slice(0,2).map(r => spiritToken(r.kind, r.from, 40)), rs.length ? h('span',{class:'raid-say',text: rs.some(r => r.kind === 'thief') ? '偷吸香火中' : '蹭香中'}) : '');
       }
       c._raid.hidden = !rs.length;
+      const dkey = towerDecor(t.id).map(b => b.id).join(',');
+      if (dkey !== (c.dataset.decor || '')){
+        c.dataset.decor = dkey; c._bubble.querySelector('.decor-ring')?.remove();
+        const ring = decorRing(t.id, 7); if (ring) c._bubble.append(ring);
+      }
+    }
+    {
+      let j = cards.get('__jail');
+      if (!j || j.dataset.photo !== String(jailPhoto().length)){ const nj = buildJailCard(); if (j) j.replaceWith(nj); else g.append(nj); cards.set('__jail', nj); j = nj; layoutKey = ''; }
+      const jc = jailCounts();
+      j._meta.replaceChildren(h('span',{text:'燙 ' + fmt(jc.smoke)}), h('span',{text:'拍 ' + fmt(jc.brick)}));
+      j.setAttribute('aria-label','打開小黑屋');
     }
     layoutPond(false);
     return;
@@ -1707,6 +2019,8 @@ function renderGrid(){
 function render(){
   renderHeader(); renderNotice(); renderBanner(); renderAsh(); renderMarquee(); renderGrid();
   if (S.sheet === 'tower') softSheet();
+  else if (S.sheet === 'shop') renderShop(false);
+  else if (S.sheet === 'jail' && !jailBusy) renderJail(false);
 }
 let softTimer = 0;
 function softSheet(){
@@ -1748,7 +2062,7 @@ function renderTowerSheet(fresh){
   const x = towerTotals(t.id);
   const tallies = S.tallies.filter(v=>v.towerId===t.id && v.by!=='god').sort((a,b)=>(b.lastAt||0)-(a.lastAt||0));
   const msgs = S.messages.filter(m=>m.towerId===t.id);
-  wantProfiles([t.claimedBy, ...tallies.map(v=>v.by), ...msgs.map(m=>m.by)].filter(Boolean));
+  wantProfiles([t.claimedBy, ...tallies.map(v=>v.by), ...msgs.map(m=>m.by), (towerAshTaken(t.id)||{}).by].filter(Boolean));
 
   // header
   const claim = h('div',{class:'claim-row'});
@@ -1773,7 +2087,7 @@ function renderTowerSheet(fresh){
   const live = activeNote(t);
   const head = h('div',{class:'altar-head'},
     h('div',{class:'head-bubble'}, live ? h('div',{class:'note',text:live.text}) : null,
-      activeGod(t.id) ? h('div',{class:'god-visit sheet-god '+(GODS[activeGod(t.id).gid].good?'good':'bad')}, godToken(activeGod(t.id).gid, 52), h('span',{class:'god-say',text:godLine(activeGod(t.id))})) : null, bubbleEl(S.editing && S.editPhoto ? S.editPhoto : t.photo, t.id)),
+      activeGod(t.id) ? h('div',{class:'god-visit sheet-god '+(GODS[activeGod(t.id).gid].good?'good':'bad')}, godToken(activeGod(t.id).gid, 52), h('span',{class:'god-say',text:godLine(activeGod(t.id))})) : null, (() => { const b = bubbleEl(S.editing && S.editPhoto ? S.editPhoto : t.photo, t.id); const ring = decorRing(t.id, 9); if (ring) b.append(ring); return b; })()),
     h('div',{style:'min-width:0'}, ...(S.editing && t.claimedBy===S.uid && canAct() ? [editForm(t)] : [h('h2',{text:t.name}),
       t.epitaph ? h('p',{class:'epitaph',text:'「'+t.epitaph+'」'}) : h('p',{class:'epitaph',text:'安息吧，在網路的彼岸'})]),
       claim));
@@ -1800,7 +2114,8 @@ function renderTowerSheet(fresh){
     onclick:()=>collectAsh(t, burnerWrap)}, ashInfo.ready ? '收集香灰' : '香灰未滿');
   let status;
   if (ashInfo.stage === 'need') status = `香爐插滿 10 支香後開始積香灰（還差 ${ashInfo.need} 支）`;
-  else if (!ashInfo.ready) status = (ashInfo.stolenBy && Date.now() - ashInfo.stolenBy.at < 15*60e3 ? `剛被${GODS[ashInfo.stolenBy.gid].name}偷走香灰，` : '香灰累積中，') + `約 ${Math.max(1, Math.ceil(ashInfo.left/6e4))} 分鐘後滿出來`;
+  else if (!ashInfo.ready) status = (ashInfo.stolenBy && Date.now() - ashInfo.stolenBy.at < 15*60e3 ? `剛被${GODS[ashInfo.stolenBy.gid].name}偷走香灰，`
+      : ashInfo.taken && Date.now() - ashInfo.taken.at < ASH_MS ? `香灰剛被${ashInfo.taken.by === S.uid ? '您' : '「' + nameOf(ashInfo.taken.by) + '」'}收走，` : '香灰累積中，') + `約 ${Math.max(1, Math.ceil(ashInfo.left/6e4))} 分鐘後滿出來`;
   else status = '香灰滿出來了，可以收集保平安';
   const ritual1 = h('div',{class:'ritual incense-ritual tier-'+tier.lv},
     tier.lv ? h('span',{class:'tier-badge',text:tier.name}) : null,
@@ -1898,6 +2213,7 @@ function renderTowerSheet(fresh){
   const content = h('div',{}, head,
     h('div',{class:'rituals'}, ritual1, ritual2),
     h('div',{class:'section-t'}, '香客名冊', h('small',{text:`${tallies.length} 位來過`})), ledger,
+    decorSection(t),
     (() => {
       const vs = godVisits(t.id).slice(-8).reverse();
       const gm = godMerit(t.id);
@@ -2147,6 +2463,7 @@ function openCreate(){
 $('#btn-new').addEventListener('click', openCreate);
 $('#btn-bell').addEventListener('click', () => toggleBell());
 $('#btn-ash').addEventListener('click', () => toggleAsh());
+$('#btn-shop').addEventListener('click', () => openShop());
 $('#mq-edit-btn').addEventListener('click', openMqEdit);
 $('#god-demo-btn').addEventListener('click', demoGod);
 $('#raid-demo-btn').addEventListener('click', raidDemo);
@@ -2192,6 +2509,12 @@ render();
     S.tips = [...snap.docs.map(d => ({id:d.id, ...d.data()})), ...demos]; render();
   }, onErr);
   setInterval(maybeRaid, 15000); setTimeout(maybeRaid, 4000);
+  db.collection('purchases').orderBy('at','desc').limit(3000).onSnapshot(snap => {
+    const ids = new Set(snap.docs.map(d => d.id));
+    S.purchases = [...snap.docs.map(d => ({id:d.id, ...d.data()})), ...S.purchases.filter(b => !ids.has(b.id) && Date.now() - b.at < 15e3)]; render();
+  }, onErr);
+  db.collection('ashlog').limit(500).onSnapshot(snap => { S.ashlog = snap.docs.map(d => ({id:d.id, ...d.data()})); if (S.sheet === 'tower') softSheet(); }, onErr);
+  db.doc('site/jail').onSnapshot(d => { S.jail = d.exists ? d.data() : null; render(); }, onErr);
   db.collection('tallies').limit(1000).onSnapshot(snap => {
     S.tallies = snap.docs.map(d => ({id:d.id, ...d.data()})); render();
   }, onErr);
