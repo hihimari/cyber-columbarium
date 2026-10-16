@@ -327,7 +327,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,.drop-card:focus
 @keyframes slip-wave{from{transform:rotate(-20deg)}to{transform:rotate(20deg)}}
 .slipper-fly{position:fixed;left:0;top:0;z-index:70;font-size:56px;line-height:1;pointer-events:none;animation:slip-fly .52s cubic-bezier(.4,0,.9,.5) both}
 @keyframes slip-fly{from{transform:translate(var(--sx),var(--sy)) translate(-50%,-50%) rotate(0)}to{transform:translate(var(--tx),var(--ty)) translate(-50%,-50%) rotate(-720deg)}}
-.god-card.whacked .god-token{animation:whacked .9s ease-in both}
+.god-card.whacked .god-token,.god-card.whacked .spirit{animation:whacked .9s ease-in both}
 @keyframes whacked{20%{transform:scale(.8) rotate(-15deg)}100%{transform:translateX(160px) rotate(40deg);opacity:0}}
 @media (prefers-reduced-motion:reduce){.slipper-btn,.slipper-e,.slipper-fly,.god-card.whacked .god-token{animation:none!important}}
 .steal-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:14px 0 12px}
@@ -532,7 +532,8 @@ label.btn{cursor:pointer;display:inline-block}
 .marquee::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle,transparent 58%,rgba(22,23,29,.5) 82%) 0 0/3px 3px}
 .mq-track{display:flex;white-space:nowrap;animation:mq var(--mqd,30s) linear infinite;will-change:transform}
 .mq-half{display:flex}
-.mq-item{padding-right:96px;font-weight:700;font-size:20px;letter-spacing:.2em;color:#FF5B2E;text-shadow:0 0 5px rgba(255,91,46,.9),0 0 14px rgba(255,60,20,.5)}
+.mq-item{padding-right:96px;font-weight:700;font-size:20px;letter-spacing:.2em;color:transparent;background:linear-gradient(90deg,#FF4D4D,#FF9F1C,#FFE14D,#4DFF88,#4DD8FF,#6B7BFF,#D56BFF,#FF4D4D) 0 0/400px 100% repeat-x;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 4px rgba(255,255,255,.35)) drop-shadow(0 0 10px rgba(255,120,200,.35));animation:mq-rainbow 3s linear infinite}
+@keyframes mq-rainbow{to{background-position:400px 0}}
 @keyframes mq{to{transform:translateX(-50%)}}
 .mq-btns{position:absolute;z-index:2;top:50%;transform:translateY(-50%);right:max(10px,env(safe-area-inset-right,0px));display:flex;gap:6px}
 .mq-edit-btn{background:rgba(22,23,29,.9);color:#D6D8E0;border:1px solid #444857;border-radius:999px;font-size:12px;padding:4px 12px}
@@ -561,7 +562,7 @@ label.btn{cursor:pointer;display:inline-block}
 
 @media (prefers-reduced-motion:reduce){
   .bubble,.burner .tip,.pond .drop-card{animation:none!important}
-  .mq-track{animation-duration:120s!important}
+  .mq-track{animation-duration:120s!important}.mq-item{animation:none!important}
   .smoke{animation-duration:.01s}
   .god-beam,.god-descend,.god-bigsay,.god-visit,.god-visit .god-token,.god-card,.wisps span,.stick-new,.ash-btn.ready,.halo::before,.fx-banner .rays,.aura,.embers span,.incense-ritual.tier-4,.drop-card .bubble::before{animation:none!important}
   .god-descend{transform:translate(-50%,var(--hy))}
@@ -1515,22 +1516,25 @@ async function writeRaid(r, patch){
   if (demo){ Object.assign(r, patch); render(); return true; }
   try { await S.db.doc('raids/' + id).set(next); return true; } catch(e){ handleWriteErr(e); return false; }
 }
-async function resolveRaid(t, r, how){
+async function resolveRaid(t, r, how, opt){
+  opt = opt || {};
   if ((t.claimedBy !== S.uid && !r.demo) || raidDone(r)) return;
   const eaten = raidEaten(r), now = Date.now();
   let outcome = 'released', back = 0;
   if (how === 'beat'){
-    const hit = Math.random() < BEAT_P;
+    const hit = Math.random() < (opt.p || BEAT_P);
     outcome = hit ? 'beaten' : 'fled'; back = hit ? r1(eaten / 2) : 0;
-    const el = document.querySelector('.raider[data-id="' + r.id + '"]');
+    opt.hit = hit;
+    const el = opt.el || document.querySelector('.raider[data-id="' + r.id + '"]');
     if (el){ const b = el.getBoundingClientRect(); fxLayer(); if (!reduceMotion){ dust(b.left + b.width/2, b.top + b.height/2, 26); if (hit) burst(b.left + b.width/2, b.top + b.height/2, 24, .9); } loop();
-      const f = h('span',{class:'fx-text ' + (hit ? 'incense' : 'ash'), text: hit ? '揍！' : '咻～跑了'}); f.style.left = (b.left + b.width/2) + 'px'; f.style.top = b.top + 'px'; f.style.setProperty('--rot','-6deg'); f.style.fontSize = '26px';
+      const f = h('span',{class:'fx-text ' + (hit ? 'incense' : 'ash'), text: hit ? (opt.slipper ? '啪！' : '揍！') : '咻～跑了'}); f.style.left = (b.left + b.width/2) + 'px'; f.style.top = b.top + 'px'; f.style.setProperty('--rot','-6deg'); f.style.fontSize = opt.slipper ? '40px' : '26px';
       fxLayer().append(f); setTimeout(() => f.remove(), 1300); }
     try { knock(1); } catch(e){}
   }
   const ok = await writeRaid(r, {end: now, eaten, back, outcome, endBy: S.uid});
   if (!ok) return;
-  if (outcome === 'beaten') toastNotice(`揍成功！塔靈吐回 ${fmt(back)} 炷香火（牠吸了 ${fmt(eaten)} 炷）。`);
+  if (opt.after) opt.after(outcome, back, eaten);
+  if (outcome === 'beaten') toastNotice(`${opt.slipper ? '拖鞋打中了' : '揍成功'}！塔靈吐回 ${fmt(back)} 炷香火（牠吸了 ${fmt(eaten)} 炷）。`);
   else if (outcome === 'fled') toastNotice(`沒揍到，塔靈叼著 ${fmt(eaten)} 炷香火跑了。`);
   else toastNotice(`放走了，牠帶走 ${fmt(eaten)} 炷香火。`);
 }
@@ -1582,11 +1586,36 @@ function raidToast(r, demo){
   const t = S.towers.find(x => x.id === r.tid); if (!t) return;
   try { wah(); } catch(e){}
   const box = $('#god-toast');
-  box.replaceChildren(h('button',{class:'god-card bad raid-card',type:'button',onclick:()=>{ box.replaceChildren(); openTower(t.id); }},
+  const mineHere = t.claimedBy === S.uid || demo;
+  const card = h('button',{class:'god-card bad raid-card',type:'button',onclick:()=>{ box.replaceChildren(); openTower(t.id); }},
     h('span',{class:'god-card-tag',text: demo ? '偷香（預覽）' : '有賊！'}), spiritToken(r.kind, r.from, 56),
     h('span',{class:'god-card-body'}, h('b',{text: r.kind === 'thief' ? `「${towerName(r.from)}」的塔靈戴著蒙眼布，溜進「${t.name}」偷吸香火` : `「${towerName(r.from)}」的塔靈奉旨來「${t.name}」蹭香`}),
-      h('span',{class:'god-quote',text: t.claimedBy === S.uid ? '快去揍一頓，揍成功能拿回一半。' : '可以派自己的塔靈去蹭香，或提醒塔主領賞。'}))));
-  clearTimeout(announceGod.t); announceGod.t = setTimeout(() => box.replaceChildren(), 9000);
+      h('span',{class:'god-quote',text: mineHere ? '現場抓到！快拿拖鞋打，打中能拿回一半。' : '可以派自己的塔靈去蹭香，或提醒塔主領賞。'})));
+  clearTimeout(announceGod.t); clearInterval(luckToast.cd);
+  if (!mineHere || !canAct()){ box.replaceChildren(card); announceGod.t = setTimeout(() => box.replaceChildren(), 9000); return; }
+  let left = 15;
+  const cd = h('span',{class:'slipper-cd',text:String(left)});
+  const slip = h('button',{class:'slipper-btn',type:'button',onclick:()=>{
+      clearInterval(luckToast.cd); slip.disabled = true;
+      const tok = card.querySelector('.spirit') || card;
+      flySlipper(slip, tok, () => resolveRaid(t, r, 'beat', {p:.75, el: tok, slipper: true, after: (out) => {
+        if (out === 'beaten'){ card.classList.add('whacked'); slip.replaceChildren('打中了！塔靈抱頭逃跑，吐回一半香火'); chime(false); }
+        else { slip.replaceChildren('沒打中，牠叼著香火跑了'); try { wah(); } catch(e){} }
+        announceGod.t = setTimeout(() => box.replaceChildren(), 3500); }}));
+    }}, h('span',{class:'slipper-e',text:'🩴'}), '拿拖鞋打牠', cd);
+  box.replaceChildren(h('div',{class:'toast-stack'}, card, slip));
+  luckToast.cd = setInterval(() => {
+    left--; cd.textContent = String(left);
+    if (left <= 0){ clearInterval(luckToast.cd); slip.disabled = true; slip.replaceChildren('來不及了，牠躲起來繼續吸'); announceGod.t = setTimeout(() => box.replaceChildren(), 2500); }
+  }, 1000);
+}
+function flySlipper(fromEl, toEl, done){
+  const from = fromEl.getBoundingClientRect(), to = toEl.getBoundingClientRect();
+  const fx = h('span',{class:'slipper-fly',text:'🩴'});
+  fx.style.setProperty('--sx', (from.left + 30) + 'px'); fx.style.setProperty('--sy', (from.top + from.height/2) + 'px');
+  fx.style.setProperty('--tx', (to.left + to.width/2) + 'px'); fx.style.setProperty('--ty', (to.top + to.height/2) + 'px');
+  fxLayer().append(fx);
+  setTimeout(() => { fx.remove(); try { thud(); } catch(e){} done(); }, reduceMotion ? 30 : 520);
 }
 function raidPanel(t){
   const list = activeRaids(t.id); if (!list.length) return null;
@@ -1595,7 +1624,7 @@ function raidPanel(t){
   const rows = list.map(r => {
     const acts = h('div',{class:'raid-acts'});
     if (canAct() && (isOwnerHere || r.demo)){
-      acts.append(h('button',{class:'btn sm',type:'button',onclick:()=>resolveRaid(t, r, 'beat')},'揍一頓'),
+      acts.append(h('button',{class:'btn sm',type:'button',onclick:e=>{ const b = e.currentTarget; b.disabled = true; const tok = document.querySelector('.raider[data-id="' + r.id + '"]') || b; flySlipper(b, tok, () => resolveRaid(t, r, 'beat', {slipper: true})); }},'🩴 拖鞋打'),
         h('button',{class:'btn ghost sm',type:'button',onclick:()=>resolveRaid(t, r, 'release')},'放走'));
     }
     if (canAct() && r.by !== S.uid && (!isOwnerHere || r.demo)){
