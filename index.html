@@ -1009,7 +1009,7 @@ const GOD_ART = {
     <path d="M50 77 q2 6 6 6" fill="none" stroke="#2A1A45" stroke-width="1.5" opacity=".5"/>`,
 };
 function godLine(e){ const L = GODS[e.gid].lines; return L[(e.li||0) % L.length]; }
-const GOD_SLOT = 5*60e3, GOD_STAY = 4*60e3;
+const GOD_SLOT = 60*60e3, GOD_STAY = 4*60e3;
 // Real visits: every 5 minutes the first open viewer who can write records one visit (doc id = the 5-minute slot, so it happens once).
 // Visits only exist when they really happened, with the real time they happened.
 function godEventsAll(){
@@ -1800,10 +1800,11 @@ function buildJailCard(){
 }
 function jailMarks(){
   const now = Date.now(), wrap = h('div',{class:'jail-marks','aria-hidden':'true'});
-  for (const b of jailHits().filter(b => now - b.at < 864e5).slice(-40)){
+  const MARK_MS = 3*60e3;
+  for (const b of jailHits().filter(b => now - b.at < MARK_MS).slice(-40)){
     const r = rng(b.id), x = 28 + r()*44, y = 26 + r()*48;
     const m = h('span',{class:'jmark ' + b.item}); m.style.left = x.toFixed(1) + '%'; m.style.top = y.toFixed(1) + '%';
-    m.style.setProperty('--rot', (r()*60 - 30).toFixed(0) + 'deg'); wrap.append(m);
+    m.style.setProperty('--rot', (r()*60 - 30).toFixed(0) + 'deg'); m.style.opacity = Math.max(.15, 1 - (now - b.at) / MARK_MS).toFixed(2); wrap.append(m);
   }
   return wrap;
 }
@@ -1833,7 +1834,7 @@ function renderJail(fresh){
     h('p',{class:'jail-count'}, '已被燙 ', h('b',{text:fmt(counts.smoke)}), ' 次・被拍 ', h('b',{text:fmt(counts.brick)}), ' 次'),
     cell, payPicker(() => renderJail(false)), acts,
     S.isOwner ? h('div',{style:'margin-top:10px'}, photoIn, h('label',{class:'btn ghost sm',for:'jail-photo-in'},'更換匠人照片')) : null,
-    h('div',{class:'section-t'}, '行刑紀錄', h('small',{text:'最近 10 筆，燙痕和腫包 24 小時後消退'})),
+    h('div',{class:'section-t'}, '行刑紀錄', h('small',{text:'最近 10 筆，燙痕和腫包幾分鐘後就會消退'})),
     hits.length ? log : h('p',{class:'muted',text:'還沒有人動手。'}));
   if (fresh || !jailBody || !document.contains(jailBody)){ showSheet(content).querySelector('.sheet').classList.add('jail-sheet'); jailBody = content; }
   else { jailBody.replaceWith(content); jailBody = content; }
@@ -2347,10 +2348,10 @@ function renderTowerSheet(fresh){
       const vs = godVisits(t.id).slice(-8).reverse();
       const gm = godMerit(t.id);
       return h('div',{},
-        h('div',{class:'section-t'}, '神明來訪', h('small',{text: vs.length ? `神明加持功德共 ${fmt(gm)}` : '每 5 分鐘有一位神明巡塔'})),
+        h('div',{class:'section-t'}, '神明來訪', h('small',{text: vs.length ? `神明加持功德共 ${fmt(gm)}` : '每小時有一位神明巡塔'})),
         vs.length ? h('div',{class:'god-list'}, ...vs.map(e => h('div',{class:'god-row '+(GODS[e.gid].good?'good':'bad')},
           godToken(e.gid, 36), h('span',{class:'t'}, h('b',{text:GODS[e.gid].name}), '「' + godLine(e) + '」', h('i',{class:'god-fx',text:GODS[e.gid].fx})), h('span',{class:'ev-when god-time',text:clock(e.at) + '・' + ago(e.at)}))))
-        : h('p',{class:'muted',text:'還沒有神明來過這座塔。神明每 5 分鐘來一位，隨機挑一座塔位：財神、福神、土地公會加功德；衰神、窮神、惡魔會偷走香灰。'}));
+        : h('p',{class:'muted',text:'還沒有神明來過這座塔。神明每小時來一位，隨機挑一座塔位：財神、福神、土地公會加功德；衰神、窮神、惡魔會偷走香灰。'}));
     })(),
     h('div',{class:'section-t'}, '偷香紀錄', h('small',{text:'塔靈偷香、蹭香與提醒'})), raidHistory(t),
     h('div',{class:'section-t'}, '塔主便利貼', h('small',{text:'最新一張在首頁顯示 24 小時，之後收進這裡'})), noteBox,
@@ -2623,7 +2624,7 @@ render();
     const ids = new Set(S.sticks.map(x=>x.id)); S.localSticks = S.localSticks.filter(x => !ids.has(x.id));
     render();
   }, onErr);
-  setInterval(() => { if (S.sheet === 'tower') softSheet(); }, 20000); // sticks burn down, ash accumulates
+  setInterval(() => { if (S.sheet === 'tower') softSheet(); else if (S.sheet === 'jail' && !jailBusy) renderJail(false); }, 20000); // sticks burn down, ash accumulates
   db.collection('gods').orderBy('at','desc').limit(500).onSnapshot(snap => {
     S.gods = snap.docs.map(d => ({id:d.id, ...d.data()}));
     godTick();
