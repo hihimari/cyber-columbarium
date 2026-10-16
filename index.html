@@ -1577,8 +1577,8 @@ function renderMarquee(){
     $('#marquee').setAttribute('aria-label', '跑馬燈：' + text);
   }
   const eb = $('#mq-edit-btn'); eb.hidden = !(S.isOwner && S.db) || mqEditing;
-  $('#god-demo-btn').hidden = !(S.isOwner && S.db) || mqEditing;
-  $('#raid-demo-btn').hidden = !(S.isOwner && S.db) || mqEditing;
+  $('#god-demo-btn').hidden = true; // previews retired; the real visits run on their own
+  $('#raid-demo-btn').hidden = true;
   const box = $('#mq-edit'); box.hidden = !mqEditing;
 }
 function openMqEdit(){
