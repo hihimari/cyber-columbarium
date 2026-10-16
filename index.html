@@ -2019,7 +2019,9 @@ function renderGrid(){
       c.setAttribute('aria-label','打開 '+t.name+' 的塔位');
       c._name.textContent = t.name;
       c._meta.replaceChildren(h('span',{class:'in',text:'香 '+fmt(x.incense)}), h('span',{text:'功德 '+fmt(x.merit)}));
-      c._tag.replaceChildren(t.claimedBy ? h('span',{class:'tag',text:t.claimedBy===S.uid?'您的塔位':'塔主已認領'}) : '');
+      if (t.claimedBy) wantProfiles([t.claimedBy]);
+      const ownerName = t.claimedBy ? (profileOf(t.claimedBy) && profileOf(t.claimedBy).name) || '' : '';
+      if (c._tag.dataset.n !== ownerName){ c._tag.dataset.n = ownerName; c._tag.replaceChildren(ownerName ? h('span',{class:'tag',text:ownerName}) : ''); }
       const n = activeNote(t);
       if (n){ if (c._note.textContent !== n.text) c._note.textContent = n.text; c._note.hidden = false; }
       else c._note.hidden = true;
