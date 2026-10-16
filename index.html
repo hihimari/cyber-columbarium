@@ -295,6 +295,18 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,.drop-card:focus
 .god-card-body b{font-size:15px;color:var(--ink)}
 @keyframes card-flip{from{opacity:0;transform:perspective(600px) rotateY(80deg) translateY(20px)}}
 .god-list{display:grid;gap:6px}
+.toast-stack{display:grid;gap:8px;justify-items:end}
+.slipper-btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:10px 18px;font:inherit;font-weight:800;font-size:15px;color:#fff;background:linear-gradient(135deg,#E2471E,#F59E0B);box-shadow:0 12px 24px -10px rgba(226,71,30,.7);cursor:pointer;animation:slip-pulse .8s ease-in-out infinite alternate}
+.slipper-btn:disabled{animation:none;background:#3B2E57;color:#E6E3F0;box-shadow:none;font-weight:600;font-size:13px;cursor:default}
+.slipper-e{font-size:22px;line-height:1;display:inline-block;animation:slip-wave .5s ease-in-out infinite alternate}
+.slipper-cd{font-family:var(--f-num);min-width:1.6em;height:1.6em;display:inline-grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.25);font-size:13px}
+@keyframes slip-pulse{to{transform:scale(1.06)}}
+@keyframes slip-wave{from{transform:rotate(-20deg)}to{transform:rotate(20deg)}}
+.slipper-fly{position:fixed;left:0;top:0;z-index:70;font-size:56px;line-height:1;pointer-events:none;animation:slip-fly .52s cubic-bezier(.4,0,.9,.5) both}
+@keyframes slip-fly{from{transform:translate(var(--sx),var(--sy)) translate(-50%,-50%) rotate(0)}to{transform:translate(var(--tx),var(--ty)) translate(-50%,-50%) rotate(-720deg)}}
+.god-card.whacked .god-token{animation:whacked .9s ease-in both}
+@keyframes whacked{20%{transform:scale(.8) rotate(-15deg)}100%{transform:translateX(160px) rotate(40deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.slipper-btn,.slipper-e,.slipper-fly,.god-card.whacked .god-token{animation:none!important}}
 .steal-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:14px 0 12px}
 .steal-list{display:grid;gap:8px}
 .steal-item{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;padding:8px 12px 8px 8px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s}
@@ -1310,10 +1322,50 @@ function luckToast(hits, away){
   const box = $('#god-toast');
   const title = away ? '您不在的時候…' : `${g.name} 順手摸走了您的運勢`;
   const body = away ? hits.slice(-3).map(x => `${GODS[x.gid].name}摸走 ${lostText(x.lost)}`).join('；') : lostText(last.lost);
-  box.replaceChildren(h('button',{class:'god-card bad',type:'button',onclick:()=>{ box.replaceChildren(); toggleAsh(true); }},
+  const card = h('button',{class:'god-card bad',type:'button',onclick:()=>{ box.replaceChildren(); toggleAsh(true); }},
     h('span',{class:'god-card-tag',text:'運勢被偷了'}), godToken(last.gid, 56),
-    h('span',{class:'god-card-body'}, h('b',{text:title}), h('span',{class:'god-quote',text:body}), h('span',{class:'god-fx',text:'點我查看福袋'}))));
-  clearTimeout(announceGod.t); announceGod.t = setTimeout(()=>box.replaceChildren(), 9000);
+    h('span',{class:'god-card-body'}, h('b',{text:title}), h('span',{class:'god-quote',text:body}), h('span',{class:'god-fx',text:'點我查看福袋'})));
+  clearTimeout(announceGod.t); clearInterval(luckToast.cd);
+  if (away || last.repelled){ box.replaceChildren(card); announceGod.t = setTimeout(()=>box.replaceChildren(), 9000); return; }
+  // caught in the act: ten seconds to grab a slipper
+  let left = 10;
+  const cd = h('span',{class:'slipper-cd',text:String(left)});
+  const slip = h('button',{class:'slipper-btn',type:'button',onclick:()=>{ clearInterval(luckToast.cd); slipper(last, card, slip); }},
+    h('span',{class:'slipper-e',text:'🩴'}), '拿拖鞋打跑他', cd);
+  box.replaceChildren(h('div',{class:'toast-stack'}, card, slip));
+  luckToast.cd = setInterval(() => {
+    left--; cd.textContent = String(left);
+    if (left <= 0){ clearInterval(luckToast.cd); slip.disabled = true; slip.replaceChildren('來不及了，他跑了'); announceGod.t = setTimeout(()=>box.replaceChildren(), 2500); }
+  }, 1000);
+}
+function slipper(entry, card, btn){
+  btn.disabled = true;
+  const from = btn.getBoundingClientRect(), tok = card.querySelector('.god-token'), to = (tok || card).getBoundingClientRect();
+  const fx = h('span',{class:'slipper-fly',text:'🩴'});
+  fx.style.setProperty('--sx', (from.left + 30) + 'px'); fx.style.setProperty('--sy', (from.top + from.height/2) + 'px');
+  fx.style.setProperty('--tx', (to.left + to.width/2) + 'px'); fx.style.setProperty('--ty', (to.top + to.height/2) + 'px');
+  fxLayer().append(fx);
+  const hit = Math.random() < .75;
+  setTimeout(() => {
+    fx.remove();
+    try { thud(); } catch(e){}
+    const x = to.left + to.width/2, y = to.top + to.height/2;
+    fxLayer(); if (!reduceMotion){ dust(x, y, 30); if (hit) burst(x, y, 30, 1); } loop();
+    const f = h('span',{class:'fx-text ' + (hit ? 'incense' : 'ash'),text: hit ? '啪！' : '咻～'});
+    f.style.left = x + 'px'; f.style.top = (y - 30) + 'px'; f.style.setProperty('--rot','-10deg'); f.style.fontSize = '40px';
+    fxLayer().append(f); setTimeout(() => f.remove(), 1300);
+    if (hit){
+      for (const [k, n] of Object.entries(entry.lost)) S.luck.s[k] = (S.luck.s[k] || 0) + n;
+      entry.repelled = true; saveLuck(); renderAsh();
+      card.classList.add('whacked');
+      btn.replaceChildren(`打中了！${GODS[entry.gid].name}抱頭逃跑，${lostText(entry.lost)} 全數追回`);
+      chime(false);
+    } else {
+      btn.replaceChildren('沒打中，他帶著東西跑了');
+      try { wah(); } catch(e){}
+    }
+    announceGod.t = setTimeout(() => $('#god-toast').replaceChildren(), 3500);
+  }, 520);
 }
 
 function renderAsh(){
@@ -1336,7 +1388,7 @@ function renderAsh(){
     luckGrid,
     h('p',{class:'muted',style:'margin:2px 6px 10px;font-size:12px',text:'敲木魚時跳出的「好運 +1」「煩惱 −1」都會存在這裡。小心衰神、窮神、惡魔，來到您認領或拜過的塔位時會偷走運勢。'}),
     thefts.length ? h('div',{class:'theft-list'}, ...thefts.map(x => h('div',{class:'theft-row'}, godToken(x.gid, 26),
-      h('span',{}, h('b',{text:GODS[x.gid].name}), (x.tower ? `在「${x.tower}」` : '') + '摸走 ' + lostText(x.lost)), h('span',{class:'ev-when',text:ago(x.at)})))) : '',
+      h('span',{}, h('b',{text:GODS[x.gid].name}), (x.tower ? `在「${x.tower}」` : '') + (x.repelled ? '想摸走 ' + lostText(x.lost) + '，被拖鞋打跑了' : '摸走 ' + lostText(x.lost))), h('span',{class:'ev-when',text:ago(x.at)})))) : '',
     h('div',{class:'pouch-sub',text:'平安香灰'}),
     h('div',{class:'ash-total'}, h('b',{text:fmt(total)}), ' 撮香灰'),
     h('div',{class:'ash-bar'}, h('span',{style:`width:${pct.toFixed(0)}%`})),
