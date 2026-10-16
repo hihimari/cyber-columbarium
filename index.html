@@ -1049,7 +1049,8 @@ const GOD_SLOT = 60*60e3, GOD_STAY = 4*60e3;
 // Visits only exist when they really happened, with the real time they happened.
 function godEventsAll(){
   const now = Date.now();
-  return S.gods.filter(e => e.at && e.at <= now + 5000 && GODS[e.gid]).sort((a,b)=>a.at-b.at);
+  // only hourly visits count; anything else came from an outdated page still open somewhere
+  return S.gods.filter(e => e.at && e.at <= now + 5000 && GODS[e.gid] && e.id === 'g' + Math.floor(e.at / GOD_SLOT)).sort((a,b)=>a.at-b.at);
 }
 let summoning = '';
 async function maybeSummon(){
