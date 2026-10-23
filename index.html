@@ -402,6 +402,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,.drop-card:focus
 .jail-cell{position:relative;width:min(320px,80vw);aspect-ratio:1;margin:0 auto 6px;border-radius:24px;overflow:hidden;background:#141219;box-shadow:inset 0 0 60px rgba(0,0,0,.8)}
 .jail-photo{position:absolute;inset:0}
 .jail-photo img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.5) brightness(.85)}
+.jail-photo.hit-face img{filter:grayscale(.25) brightness(.95);animation:face-pop .35s ease-out}
+@keyframes face-pop{0%{transform:scale(1.12) rotate(-3deg)}60%{transform:scale(.97) rotate(1deg)}100%{transform:none}}
 .jail-photo>.muted{position:absolute;inset:0;display:grid;place-items:center}
 .jail-bars.big{inset:0;border-radius:0;-webkit-mask:none;mask:none;background:repeating-linear-gradient(90deg,transparent 0 15%,rgba(25,24,32,.92) 15% 19.5%),linear-gradient(180deg,rgba(25,24,32,.92) 0 5%,transparent 5% 95%,rgba(25,24,32,.92) 95%)}
 .jail-marks{position:absolute;inset:0;pointer-events:none}
@@ -421,7 +423,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,.drop-card:focus
 .jail-prop.brick{animation:prop-throw .65s cubic-bezier(.4,0,.9,.5) both}
 @keyframes prop-in{from{transform:translate(var(--sx),var(--sy)) translate(-50%,-50%) rotate(-30deg) scale(1.3)}85%{transform:translate(var(--tx),var(--ty)) translate(-50%,-50%) rotate(-50deg) scale(.95)}100%{transform:translate(var(--tx),var(--ty)) translate(-50%,-50%) rotate(-45deg) scale(1)}}
 @keyframes prop-throw{from{transform:translate(var(--sx),var(--sy)) translate(-50%,-50%) rotate(0) scale(1.5)}100%{transform:translate(var(--tx),var(--ty)) translate(-50%,-50%) rotate(-540deg) scale(.9)}}
-@media (prefers-reduced-motion:reduce){.decor-e,.decor-ring.golden::before,.jail-sheet.shake,.jail-prop{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.decor-e,.decor-ring.golden::before,.jail-sheet.shake,.jail-prop,.jail-photo.hit-face img{animation:none!important}}
 /* tower spirits (incense thieves / moochers) */
 .spirit{--ss:44px;width:var(--ss);height:var(--ss);display:inline-block;flex:none;position:relative}
 .spirit svg{display:block;width:100%;height:100%;overflow:visible}
@@ -711,7 +713,7 @@ function setWander(el, seed, amp, dmin, dmax){
 /* state */
 const S = { db:null, user:null, uid:null, canWrite:null, isOwner:false,
   towers:[], tallies:[], messages:[], notes:[], profiles:{}, openId:null, ready:false, offline:false,
-  readOnly:false, sheet:null, replyTo:null, confirmDel:null, editing:false, lastSeen:0, marquee:null, ash:{total:0,last:{},log:[]}, luck:{s:{},check:Date.now(),log:[]}, sticks:[], localSticks:[], gods:[], raids:[], tips:[], purchases:[], ashlog:[], jail:null };
+  readOnly:false, sheet:null, replyTo:null, confirmDel:null, editing:false, lastSeen:0, marquee:null, ash:{total:0,last:{},log:[]}, luck:{s:{},check:Date.now(),log:[]}, sticks:[], localSticks:[], gods:[], raids:[], tips:[], purchases:[], ashlog:[], jail:null, jailFaces:null };
 const pending = {}; // towerId -> {incense, merit}
 const inflight = {};
 
@@ -1989,6 +1991,33 @@ function jailPhoto(){
   if (S.jail && S.jail.photo) return S.jail.photo;
   const t = S.towers.find(x => /匠人/.test(x.name || '')); return t ? t.photo : '';
 }
+const FACE_MS = 4500;
+function jailFaces(){ return ((S.jailFaces && S.jailFaces.faces) || []).map(safeImg).filter(Boolean); }
+/* the face shown right now: a random expression for a few seconds after any hit, otherwise the normal photo */
+function jailFaceNow(){
+  const faces = jailFaces(), last = jailHits().slice(-1)[0];
+  if (faces.length && last && Date.now() - last.at < FACE_MS){
+    clearTimeout(jailFaceNow.t); jailFaceNow.t = setTimeout(() => { if (S.sheet === 'jail') renderJail(false); }, FACE_MS - (Date.now() - last.at) + 50);
+    return {src: faces[Math.floor(rng(last.id)() * faces.length)], hit: true};
+  }
+  return {src: safeImg(jailPhoto()), hit: false};
+}
+function splitGrid(file, n){
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const cw = img.naturalWidth / n, ch = img.naturalHeight / n, inset = Math.min(cw, ch) * .025, out = [];
+      for (let y=0;y<n;y++) for (let x=0;x<n;x++){
+        const c = document.createElement('canvas'); c.width = c.height = 300;
+        const sw = cw - inset*2, sh = ch - inset*2, side = Math.min(sw, sh);
+        c.getContext('2d').drawImage(img, x*cw + inset + (sw-side)/2, y*ch + inset + (sh-side)/2, side, side, 0, 0, 300, 300);
+        out.push(c.toDataURL('image/jpeg', .72));
+      }
+      URL.revokeObjectURL(url); res(out);
+    };
+    img.onerror = rej; img.src = url;
+  });
+}
 function jailHits(){ return S.purchases.filter(b => b.kind === 'jail' && JAIL_ITEMS[b.item]).sort((a,b) => a.at - b.at); }
 function jailCounts(){ const c = {smoke:0, brick:0}; for (const b of jailHits()) c[b.item]++; return c; }
 let jailDock = null;
@@ -2038,8 +2067,9 @@ function renderJail(fresh){
   if (S.sheet !== 'jail') return;
   const counts = jailCounts(), hits = jailHits();
   wantProfiles(hits.slice(-12).map(b => b.by));
+  const face = jailFaceNow();
   const cell = h('div',{class:'jail-cell'},
-    h('div',{class:'jail-photo'}, safeImg(jailPhoto()) ? h('img',{src:safeImg(jailPhoto()),alt:'被關在小黑屋的匠人'}) : h('span',{class:'muted',text:'等待匠人入獄'}), jailMarks()),
+    h('div',{class:'jail-photo' + (face.hit ? ' hit-face' : '')}, face.src ? h('img',{src:face.src,alt:'被關在小黑屋的匠人'}) : h('span',{class:'muted',text:'等待匠人入獄'}), jailMarks()),
     h('div',{class:'jail-bars big','aria-hidden':'true'}),
     jailSay ? h('div',{class:'jail-say',text:jailSay}) : null);
   const acts = h('div',{class:'jail-acts'}, ...Object.entries(JAIL_ITEMS).map(([k, it]) =>
@@ -2062,7 +2092,12 @@ function renderJail(fresh){
         const f = e.target.files[0]; if (!f) return;
         try { const src = await shrink(f); const next = {...(S.jail||{}), side: src, at: Date.now(), by: S.uid}; await S.db.doc('site/jail').set(next); S.jail = next; toastNotice('已更換匠人的側臉照片。'); }
         catch(err){ toastNotice('照片沒有換成功，請再試一次。'); } }}),
-      h('label',{class:'btn ghost sm',for:'jail-side-in'},'更換側臉照片')) : null,
+      h('label',{class:'btn ghost sm',for:'jail-side-in'},'更換側臉照片'),
+      h('input',{type:'file',accept:'image/*',class:'visually-hidden',id:'jail-faces-in',onchange: async e => {
+        const f = e.target.files[0]; if (!f) return;
+        try { const faces = await splitGrid(f, 3); await S.db.doc('site/jailfaces').set({faces, at: Date.now(), by: S.uid}); S.jailFaces = {faces}; renderJail(false); toastNotice(`已更新 ${faces.length} 張被打表情。`); }
+        catch(err){ toastNotice('表情九宮格沒有上傳成功，請再試一次。'); } }}),
+      h('label',{class:'btn ghost sm',for:'jail-faces-in'},'上傳表情九宮格' + (jailFaces().length ? `（目前 ${jailFaces().length} 張）` : ''))) : null,
     h('div',{class:'section-t'}, '行刑紀錄', h('small',{text:'最近 10 筆，燙痕和腫包幾分鐘後就會消退'})),
     hits.length ? log : h('p',{class:'muted',text:'還沒有人動手。'}));
   if (fresh || !jailBody || !document.contains(jailBody)){ showSheet(content).querySelector('.sheet').classList.add('jail-sheet'); jailBody = content; }
@@ -2879,6 +2914,7 @@ render();
   }, onErr);
   db.collection('ashlog').limit(500).onSnapshot(snap => { S.ashlog = snap.docs.map(d => ({id:d.id, ...d.data()})); if (S.sheet === 'tower') softSheet(); }, onErr);
   db.doc('site/jail').onSnapshot(d => { S.jail = d.exists ? d.data() : null; render(); }, onErr);
+  db.doc('site/jailfaces').onSnapshot(d => { S.jailFaces = d.exists ? d.data() : null; if (S.sheet === 'jail') renderJail(false); }, onErr);
   db.collection('tallies').limit(1000).onSnapshot(snap => {
     S.tallies = snap.docs.map(d => ({id:d.id, ...d.data()})); render();
   }, onErr);
