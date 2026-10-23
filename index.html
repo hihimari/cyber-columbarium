@@ -402,6 +402,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,.drop-card:focus
 .jail-cell{position:relative;width:min(320px,80vw);aspect-ratio:1;margin:0 auto 6px;border-radius:24px;overflow:hidden;background:#141219;box-shadow:inset 0 0 60px rgba(0,0,0,.8)}
 .jail-photo{position:absolute;inset:0}
 .jail-photo img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.5) brightness(.85)}
+.jail-cell.hitting .jail-bars{display:none}
 .jail-photo.hit-face img{filter:grayscale(.25) brightness(.95);animation:face-pop .35s ease-out}
 @keyframes face-pop{0%{transform:scale(1.12) rotate(-3deg)}60%{transform:scale(.97) rotate(1deg)}100%{transform:none}}
 .jail-photo>.muted{position:absolute;inset:0;display:grid;place-items:center}
@@ -2068,7 +2069,7 @@ function renderJail(fresh){
   const counts = jailCounts(), hits = jailHits();
   wantProfiles(hits.slice(-12).map(b => b.by));
   const face = jailFaceNow();
-  const cell = h('div',{class:'jail-cell'},
+  const cell = h('div',{class:'jail-cell' + (face.hit ? ' hitting' : '')},
     h('div',{class:'jail-photo' + (face.hit ? ' hit-face' : '')}, face.src ? h('img',{src:face.src,alt:'被關在小黑屋的匠人'}) : h('span',{class:'muted',text:'等待匠人入獄'}), jailMarks()),
     h('div',{class:'jail-bars big','aria-hidden':'true'}),
     jailSay ? h('div',{class:'jail-say',text:jailSay}) : null);
