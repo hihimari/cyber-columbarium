@@ -102,8 +102,7 @@
             const { data, error } = await sb.auth.signInAnonymously();
             if (error) { btn.disabled = false; msg.textContent = '進塔失敗：' + error.message; return; }
             uid = data.user.id;
-            await saveProfile({ name: n.slice(0, 16) });
-            bg.remove(); resolve();
+            bg.remove(); resolve(n.slice(0, 16));
           } }, name, btn),
           msg,
           el('div', { class: 'ga-or', text: '已經綁定過帳號？' }),
@@ -113,6 +112,37 @@
       };
       showNick();
       document.body.append(bg);
+    });
+  }
+  /* ---------- private site: a shared entry password, checked in the database ---------- */
+  async function isMember() {
+    const { data, error } = await sb.rpc('site_am_member');
+    return !error && data === true;
+  }
+  function passGate() {
+    return new Promise((resolve) => {
+      const card = el('div', { class: 'ga-card', role: 'dialog', 'aria-modal': 'true' });
+      const bg = el('div', { class: 'ga-bg' }, card);
+      const pw = el('input', { type: 'password', placeholder: '入站密碼', autocomplete: 'current-password' });
+      const msg = el('div', { class: 'ga-msg' });
+      const btn = el('button', { class: 'ga-btn', type: 'submit', text: '進入' });
+      card.append(
+        el('h2', { text: '賽博靈骨塔' }),
+        el('p', { text: '這是私人網站，請輸入入站密碼。密碼請向塔主索取；同一個瀏覽器只需要輸入一次。' }),
+        el('form', { style: 'display:grid;gap:12px', onsubmit: async (e) => {
+          e.preventDefault();
+          const v = pw.value; if (!v) { msg.textContent = '請輸入密碼。'; return; }
+          btn.disabled = true; msg.textContent = '';
+          const { data, error } = await sb.rpc('site_join', { pw: v });
+          btn.disabled = false;
+          if (error) { msg.textContent = /too_many/.test(error.message || '') ? '嘗試次數太多，請過 10 分鐘再試。' : '暫時無法驗證，請稍後再試。'; return; }
+          if (data !== true) { msg.textContent = '密碼不正確。'; pw.select(); return; }
+          bg.remove(); resolve();
+        } }, pw, btn),
+        msg,
+        el('button', { class: 'ga-link', type: 'button', text: '換一個帳號登入', onclick: async () => { await sb.auth.signOut(); location.replace(SITE_URL); } }));
+      document.body.append(bg);
+      setTimeout(() => pw.focus(), 0);
     });
   }
   async function saveProfile(patch) {
@@ -135,14 +165,16 @@
   const ready = (async () => {
     const { data } = await sb.auth.getSession();
     await domReady;
+    let nick = null, meta = {};
     if (data.session) {
-      uid = data.session.user.id; userEmail = data.session.user.email || null;
-      await loadProfiles([uid]);
-      const meta = data.session.user.user_metadata || {};
-      if (!profileCache[uid] || !profileCache[uid].name) await saveProfile({ name: (meta.full_name || meta.name || (userEmail || '香客').split('@')[0]).slice(0, 16) });
+      uid = data.session.user.id; userEmail = data.session.user.email || null; meta = data.session.user.user_metadata || {};
     } else {
-      await gate();
+      nick = await gate();
     }
+    if (!(await isMember())) await passGate();
+    await loadProfiles([uid]);
+    if (nick) await saveProfile({ name: nick });
+    else if (!profileCache[uid] || !profileCache[uid].name) await saveProfile({ name: (meta.full_name || meta.name || (userEmail || '香客').split('@')[0]).slice(0, 16) });
     const { data: owners } = await sb.from('site_owner').select('uid');
     ownerIds = new Set((owners || []).map((o) => o.uid));
     sb.auth.onAuthStateChange((_e, s) => { if (s && s.user) { userEmail = s.user.email || null; } });
@@ -208,9 +240,33 @@
         msg.className = 'ga-ok'; msg.textContent = '確認信已寄出，請到信箱點開連結完成綁定。';
       } }, email, el('button', { class: 'ga-btn', type: 'submit', text: userEmail ? '更換 Email' : '綁定 Email' })),
       msg,
+      isOwner() ? ownerPassBox() : '',
       el('div', { class: 'ga-small', text: '帳號代碼：' + uid }),
       el('button', { class: 'ga-link', type: 'button', text: '關閉', onclick: () => bg.remove() }));
     document.body.append(bg);
+  }
+
+  function ownerPassBox() {
+    const pw = el('input', { type: 'password', placeholder: '新的入站密碼（至少 4 個字）', autocomplete: 'new-password' });
+    const m = el('div', { class: 'ga-msg' });
+    const say = (ok, t) => { m.className = ok ? 'ga-ok' : 'ga-msg'; m.textContent = t; };
+    return el('div', { style: 'display:grid;gap:10px;border-top:1px solid rgba(42,51,80,.1);padding-top:14px' },
+      el('p', { text: '塔主專用：設定入站密碼。改密碼後，已經進站的人不受影響；新訪客要輸入新密碼。' }),
+      el('form', { style: 'display:grid;gap:10px', onsubmit: async (e) => {
+        e.preventDefault(); const v = pw.value;
+        if (v.length < 4) { say(false, '密碼至少要 4 個字。'); return; }
+        const { error } = await sb.rpc('site_set_password', { pw: v });
+        if (error) { say(false, '設定失敗：' + error.message); return; }
+        pw.value = ''; say(true, '入站密碼已更新。');
+      } }, pw, el('button', { class: 'ga-btn', type: 'submit', text: '設定入站密碼' })),
+      el('button', { class: 'ga-link', type: 'button', text: '要求所有人重新輸入密碼', onclick: async (e) => {
+        const b = e.currentTarget;
+        if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = '確定嗎？再按一次執行'; return; }
+        const { error } = await sb.rpc('site_reset_members');
+        b.dataset.sure = ''; b.textContent = '要求所有人重新輸入密碼';
+        say(!error, error ? '執行失敗：' + error.message : '已清除，所有人（塔主除外）下次進站都要重新輸入密碼。');
+      } }),
+      m);
   }
 
   /* ---------- document store (Firestore-like surface used by the page) ---------- */
